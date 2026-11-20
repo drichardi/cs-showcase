@@ -1,0 +1,388 @@
+{
+  "_comment": "Edit with editor.html, or by hand. 'slug' must match the folder name in the student-work repo. Every quote is marked placeholder:true until a real student's words replace it — set placeholder to false once the quote is genuine and you have permission to publish it.",
+  "meta": {
+    "distinctionSemesters": 7,
+    "programmingSemestersForCapstone": 2
+  },
+  "lines": [
+    {
+      "id": "tier1",
+      "label": "Tier 1 · Start here",
+      "color": "#4cc3f5"
+    },
+    {
+      "id": "tier2",
+      "label": "Tier 2 · Optional",
+      "color": "#a78bfa"
+    },
+    {
+      "id": "tier3",
+      "label": "Tier 3 · Core advanced",
+      "color": "#fb923c"
+    },
+    {
+      "id": "capstone",
+      "label": "Capstone",
+      "color": "#f05f9e"
+    },
+    {
+      "id": "cyber",
+      "label": "Standalone",
+      "color": "#2dd4a7"
+    }
+  ],
+  "courses": [
+    {
+      "slug": "intro-programming",
+      "name": "Intro to Programming",
+      "short": "Intro",
+      "line": "tier1",
+      "semesters": 1,
+      "recommended": true,
+      "countsAsProgramming": true,
+      "tagline": "Make art, animation and interactive projects with code.",
+      "about": "Inquiry- and project-based, and highly collaborative. Projects focus on problem solving and produce visual output rather than the mostly text-based work of the AP courses. Students cover a lot of ground and meet advanced concepts sooner than AP students do.",
+      "highlights": [
+        "Make art, animation, and interactive projects with code",
+        "Covers about 70% of an AP course, with plenty of rigor",
+        "Highly collaborative; no experience needed"
+      ],
+      "prereqText": "None",
+      "prereqs": [],
+      "skills": [
+        "python",
+        "creative-coding",
+        "problem-solving",
+        "collaboration"
+      ],
+      "quote": {
+        "text": "We spent three weeks on one generative art piece and I still have it framed.",
+        "by": "Student ’26",
+        "placeholder": true
+      }
+    },
+    {
+      "slug": "ap-csp",
+      "name": "AP Computer Science Principles",
+      "short": "AP CSP",
+      "line": "tier1",
+      "semesters": 2,
+      "countsAsProgramming": true,
+      "tagline": "A full year across programming, data, systems and impact.",
+      "about": "A holistic computer science skill set across creative development, data, algorithms and programming, computer systems, and the impact of computing. All programming is done in Python.",
+      "highlights": [
+        "Programming in Python, plus data, algorithms, and how computers work",
+        "Hands-on problem solving across a full year",
+        "Open to 9th graders who took Algebra I in 8th grade"
+      ],
+      "prereqText": "None",
+      "prereqs": [],
+      "skills": [
+        "python",
+        "data",
+        "algorithms",
+        "computer-systems",
+        "ethics",
+        "problem-solving"
+      ],
+      "quote": {
+        "text": "I came in having never written a line of code and left building things I actually wanted to use.",
+        "by": "Student ’27",
+        "placeholder": true
+      }
+    },
+    {
+      "slug": "ap-cybersecurity",
+      "name": "AP Cybersecurity",
+      "short": "AP Cyber",
+      "line": "cyber",
+      "semesters": 2,
+      "isNew": true,
+      "countsAsProgramming": false,
+      "tagline": "Find the weak spots before an attacker does.",
+      "about": "Part of College Board's AP Career Kickstart program, launching nationally in 2026–27. Five units — Introduction to Security, Securing Spaces, Securing Networks, Securing Devices, and Securing Applications and Data — with three skills spiralling through all of them. A complete experience on its own, open to any student in any year.",
+      "highlights": [
+        "Find the weak spots in networks, devices, and data before an attacker does",
+        "Analyze risk, mitigate risk, detect attacks",
+        "Option to earn an employer-endorsed credential alongside the AP exam",
+        "Aligned with CompTIA Security+ and Cisco CCST",
+        "No coding experience required"
+      ],
+      "prereqText": "None",
+      "prereqs": [],
+      "note": "Counts toward the 7-semester distinction, but it is programming-light by design and does not count toward the two programming semesters the capstone asks for.",
+      "skills": [
+        "networks",
+        "security",
+        "risk-analysis",
+        "cryptography",
+        "computer-systems"
+      ],
+      "quote": {
+        "text": "You stop seeing a network as magic and start seeing all the places it can go wrong.",
+        "by": "Student ’27",
+        "placeholder": true
+      }
+    },
+    {
+      "slug": "data-science-ml",
+      "name": "Data Science and Machine Learning",
+      "short": "Data Sci & ML",
+      "line": "tier2",
+      "semesters": 1,
+      "countsAsProgramming": true,
+      "tagline": "Find the story hiding in a big, messy dataset.",
+      "about": "Students work with statistical tools for analyzing and visualizing large datasets, then carry a final project through the full data science pipeline — collecting and cleaning the data, predicting outcomes, and finding the patterns underneath.",
+      "highlights": [
+        "Statistical tools for analyzing and visualizing large datasets",
+        "A final project covering the full pipeline, from collecting and cleaning data to predicting outcomes",
+        "Ends with a unit running models locally in the lab"
+      ],
+      "prereqText": "1 semester of Computer Science coursework",
+      "prereqs": [
+        {
+          "csSemesters": 1
+        }
+      ],
+      "note": "AP CSA and this course teach different fundamentals, and neither replaces the other. Students may take both, in either order.",
+      "skills": [
+        "python",
+        "data",
+        "statistics",
+        "visualization",
+        "machine-learning",
+        "model-evaluation",
+        "ethics"
+      ],
+      "quote": {
+        "text": "Cleaning the data took longer than training the model, and that turned out to be the lesson.",
+        "by": "Student ’26",
+        "placeholder": true
+      }
+    },
+    {
+      "slug": "ap-csa",
+      "name": "AP Computer Science A",
+      "short": "AP CSA",
+      "line": "tier2",
+      "semesters": 2,
+      "countsAsProgramming": true,
+      "tagline": "Build full applications in Java, from scratch.",
+      "about": "A structured curriculum with labs, homework every class, and in-class discovery during lab time. Focused entirely on programming and goes deeper than AP CSP. Aligns closely with most university first-year CS classes.",
+      "highlights": [
+        "Object-oriented design in Java: classes, arrays, and recursion",
+        "Design, write, and debug full applications from the ground up",
+        "The closest match to a first-year college CS course"
+      ],
+      "prereqText": "Intro to Programming or AP CSP",
+      "prereqs": [
+        {
+          "anyOf": [
+            "intro-programming",
+            "ap-csp"
+          ]
+        }
+      ],
+      "note": "AP CSA and Applied Machine Learning teach different fundamentals, and neither replaces the other. Students heading toward a college CS major should take CSA.",
+      "skills": [
+        "java",
+        "oop",
+        "recursion",
+        "debugging",
+        "algorithms"
+      ],
+      "quote": {
+        "text": "It is the class where debugging stopped being guesswork for me.",
+        "by": "Student ’26",
+        "placeholder": true
+      }
+    },
+    {
+      "slug": "data-structures-algorithms",
+      "name": "Data Structures and Algorithms",
+      "short": "DS&A",
+      "line": "tier3",
+      "semesters": 1,
+      "recommended": true,
+      "countsAsProgramming": true,
+      "subtitle": "Built in Unity with C#",
+      "tagline": "The core advanced course. Board games first, then code.",
+      "about": "Aligns with content typically covered in a 2nd or 3rd year college course on data structures and algorithms, focusing on the advantages and disadvantages of different structures for storing and manipulating data. Physical board games make abstract structures tangible before students apply the concepts in code.",
+      "highlights": [
+        "Goes beyond the data structures in AP into more advanced design",
+        "Board games make abstract structures tangible before students code them",
+        "Aligned with a 2nd or 3rd year college CS course",
+        "Strongly recommended before the capstone"
+      ],
+      "prereqText": "Any Tier 1 or Tier 2 course",
+      "prereqs": [
+        {
+          "anyOf": [
+            "intro-programming",
+            "ap-csp",
+            "data-science-ml",
+            "ap-csa"
+          ]
+        }
+      ],
+      "skills": [
+        "data-structures",
+        "algorithms",
+        "csharp",
+        "unity",
+        "performance"
+      ],
+      "quote": {
+        "text": "Playing the board game version first meant the code made sense before I wrote it.",
+        "by": "Student ’26",
+        "placeholder": true
+      }
+    },
+    {
+      "slug": "software-development-studio",
+      "name": "Software Development Studio (K)",
+      "short": "Studio (K)",
+      "line": "capstone",
+      "semesters": 1,
+      "recommended": true,
+      "countsAsProgramming": true,
+      "tagline": "Ship one real project, as a team, for a real partner.",
+      "about": "Students work collaboratively in small groups across the semester on a single, large-scale software development project. Content is driven by student and project needs, and groups often pick up new skills, languages or technologies as the work requires. Groups carry a security and testing role alongside the build.",
+      "highlights": [
+        "Ship one large project as a team over a full semester",
+        "Pick up new tools, languages, and roles as the project demands",
+        "Service-based work; earns Ke Kilohana credit"
+      ],
+      "prereqText": "Two semesters of programming coursework, or instructor permission",
+      "prereqs": [
+        {
+          "programmingSemesters": 2
+        }
+      ],
+      "note": "Data Structures and Algorithms is strongly recommended beforehand, though it is not required.",
+      "skills": [
+        "team-software",
+        "project-management",
+        "service-design",
+        "testing"
+      ],
+      "quote": {
+        "text": "Our project is still running at the place we built it for. That is a strange and good feeling.",
+        "by": "Student ’25",
+        "placeholder": true
+      }
+    },
+    {
+      "slug": "advanced-projects",
+      "name": "Advanced Projects",
+      "short": "Adv Projects",
+      "line": "capstone",
+      "semesters": 1,
+      "countsAsProgramming": true,
+      "tagline": "Set your own milestones and build something you own.",
+      "about": "A significant, self-directed project: either a passion project explored in depth or a continuation and refinement of work from Software Development Studio (K). Functions much like an independent study, with teacher-approved milestone plans and defined due dates.",
+      "highlights": [
+        "Set your own milestones and build something you own",
+        "Extend a studio project or start a passion project",
+        "Portfolio-worthy work for college and internship applications"
+      ],
+      "prereqText": "Software Development Studio (K)",
+      "prereqs": [
+        {
+          "allOf": [
+            "software-development-studio"
+          ]
+        }
+      ],
+      "skills": [
+        "self-direction",
+        "milestone-planning",
+        "portfolio"
+      ],
+      "quote": {
+        "text": "Nobody told me what to build, which was terrifying for a week and then the best part.",
+        "by": "Student ’25",
+        "placeholder": true
+      }
+    }
+  ],
+  "skills": {
+    "python": "Python",
+    "java": "Java",
+    "csharp": "C#",
+    "oop": "Object-oriented design",
+    "recursion": "Recursion",
+    "data-structures": "Data structures",
+    "algorithms": "Algorithms",
+    "performance": "Performance trade-offs",
+    "debugging": "Debugging",
+    "unity": "Unity",
+    "creative-coding": "Creative coding",
+    "data": "Working with data",
+    "machine-learning": "Machine learning",
+    "model-evaluation": "Model evaluation",
+    "networks": "Networks",
+    "security": "Security",
+    "risk-analysis": "Risk analysis",
+    "cryptography": "Cryptography",
+    "computer-systems": "Computer systems",
+    "ethics": "Ethics and impact",
+    "team-software": "Team software development",
+    "project-management": "Project management",
+    "service-design": "Service design",
+    "testing": "Testing",
+    "problem-solving": "Problem solving",
+    "collaboration": "Collaboration",
+    "self-direction": "Self-direction",
+    "milestone-planning": "Milestone planning",
+    "portfolio": "Portfolio building",
+    "statistics": "Statistics",
+    "visualization": "Data visualization"
+  },
+  "presets": [
+    {
+      "name": "I want to make games",
+      "courses": [
+        "intro-programming",
+        "data-structures-algorithms",
+        "ap-csa",
+        "software-development-studio",
+        "advanced-projects"
+      ]
+    },
+    {
+      "name": "College CS major",
+      "courses": [
+        "ap-csp",
+        "ap-csa",
+        "data-structures-algorithms",
+        "software-development-studio",
+        "advanced-projects"
+      ]
+    },
+    {
+      "name": "Security first",
+      "courses": [
+        "ap-cybersecurity",
+        "intro-programming",
+        "data-structures-algorithms",
+        "software-development-studio"
+      ]
+    },
+    {
+      "name": "Data and AI",
+      "courses": [
+        "intro-programming",
+        "data-science-ml",
+        "data-structures-algorithms",
+        "software-development-studio"
+      ]
+    },
+    {
+      "name": "Just trying it out",
+      "courses": [
+        "intro-programming"
+      ]
+    }
+  ]
+}

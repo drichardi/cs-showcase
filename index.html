@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Computer Science — Punahou School</title>
+<meta name="description" content="Course pathways, what each class covers, and the work students actually make.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<script src="assets/js/shared.js"></script>
+</head>
+<body>
+<svg id="topo" aria-hidden="true"></svg>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="index.html"><span class="dot"></span> Computer Science</a>
+    <nav>
+      <a href="#map">Courses</a>
+      <a href="#plan">Plan a route</a>
+      <a href="#work">Student work</a>
+      <span class="ctl"></span>
+    </nav>
+  </div>
+</header>
+
+<div class="fb">
+  <div class="wrap">
+    <b>Reviewing three designs.</b> Same site, three visual directions — switch and tell us which reads best.
+    <span class="pick"></span>
+  </div>
+</div>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow mono">Punahou School · Computer Science · 2026–27</p>
+      <h1>Eight courses. Many ways through.</h1>
+      <p class="lede">Start with no experience at all, or place past the first tier. Seven semesters earns the DTE distinction. See what each course covers, what students built in it, and plan your own route.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#plan">Plan your route →</a>
+        <a class="btn btn-ghost" href="#map">Browse courses</a>
+      </div>
+      <div class="hero-stats">
+        <div><span id="stat-courses">8</span><small>courses</small></div>
+        <div><span>7</span><small>semesters for DTE distinction</small></div>
+        <div><span>0</span><small>experience needed to start</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="map">
+    <div class="wrap">
+      <div class="sec-head"><div><h2>The map</h2></div></div>
+      <div class="tag-bar" id="tagBar"></div>
+      <div class="map-shell">
+        <div class="map-legend" id="legend"></div>
+        <div class="map-grid" id="mapGrid"><svg id="connectors" aria-hidden="true"></svg></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="plan">
+    <div class="wrap">
+      <div class="sec-head"><div>
+        <h2>Build a hypothetical four years</h2>
+        <p>The planner checks prerequisites, counts semesters, and shows what your route never touches.</p>
+      </div></div>
+      <div class="planner">
+        <div class="panel">
+          <div class="presets" id="presets"></div>
+          <div class="year-row" style="margin-bottom:6px"><span></span><span class="slot-head">Fall</span><span class="slot-head">Spring</span></div>
+          <div class="grid-years" id="grid"></div>
+          <div class="plan-actions">
+            <button id="btnClear">Clear</button>
+            <button id="btnShare">Copy shareable link</button>
+          </div>
+        </div>
+        <div class="panel readout" id="readout"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="work">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><h2>What students make</h2></div>
+        <button class="btn btn-ghost" id="btnReshuffle" style="margin-left:auto">Shuffle ↻</button>
+      </div>
+      <div class="gallery" id="gallery"></div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <div class="foot-grid qa">
+        <div><h5>I've been coding for years</h5><p>Take the placement interview — walk us through a program or two you've built and you start in Tier 2.</p></div>
+        <div><h5>What's the DTE distinction?</h5><p>Seven semesters of CS coursework. Start by sophomore year if you're aiming for it.</p></div>
+        <div><h5>Do I have to take an AP?</h5><p>No. Intro → Data Structures and Algorithms → Software Development Studio (K) reaches the capstone with no AP at all.</p></div>
+        <div><h5>Can I double up?</h5><p>Often. One AP plus Data Structures and Algorithms tends to leave students with a deeper skill set than two APs.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div><h5>Computer Science</h5><p>Punahou School · Honolulu, Hawaiʻi</p></div>
+    <div><h5>Student work</h5><p>Shown with permission. First name and last initial only.</p></div>
+    <div><h5>Questions</h5><p>Talk to either CS teacher or your college counselor.</p></div>
+  </div>
+</footer>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/topo.js"></script>
+<script src="assets/js/work.js"></script>
+<script src="assets/js/map.js"></script>
+<script src="assets/js/planner.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

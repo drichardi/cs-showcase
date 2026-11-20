@@ -1,0 +1,120 @@
+{
+  "_comment": "Placeholder shown only when the real work repo is unreachable or empty. Safe to delete once the repo is live.",
+  "generated": "2026-11-19",
+  "courses": {
+    "intro-programming": [
+      {
+        "id": "s1",
+        "title": "Generative Reef Patterns",
+        "student": "Maile K.",
+        "year": 2026,
+        "blurb": "Recursive spiral studies built in Processing, exported as prints for the hallway.",
+        "media": [
+          {
+            "type": "image",
+            "src": "assets/sample/generative-art.svg"
+          }
+        ],
+        "links": [
+          {
+            "label": "Source",
+            "url": "https://example.com"
+          }
+        ],
+        "consent": true
+      }
+    ],
+    "ap-csp": [
+      {
+        "id": "s2",
+        "title": "Bus Route Delay Explorer",
+        "student": "Jonah T.",
+        "year": 2026,
+        "blurb": "Scraped TheBus arrival data for a semester and charted which routes slip the most.",
+        "media": [
+          {
+            "type": "image",
+            "src": "assets/sample/pathfinder.svg"
+          }
+        ],
+        "consent": true
+      }
+    ],
+    "ap-cybersecurity": [
+      {
+        "id": "s3",
+        "title": "Packet Capture Lab Writeup",
+        "student": "Ari L.",
+        "year": 2027,
+        "blurb": "Mapped traffic across a sandboxed network and documented three detectable attack signatures.",
+        "media": [
+          {
+            "type": "image",
+            "src": "assets/sample/packet-lab.svg"
+          }
+        ],
+        "consent": true
+      }
+    ],
+    "data-structures-algorithms": [
+      {
+        "id": "s5",
+        "title": "Lanai Tower Defense",
+        "student": "Kekoa M.",
+        "year": 2026,
+        "blurb": "Wave pathing on a weighted graph, with a priority queue driving enemy routing.",
+        "media": [
+          {
+            "type": "image",
+            "src": "assets/sample/tower-defense.svg"
+          }
+        ],
+        "links": [
+          {
+            "label": "Play on itch.io",
+            "url": "https://example.com"
+          }
+        ],
+        "consent": true
+      }
+    ],
+    "software-development-studio": [
+      {
+        "id": "s6",
+        "title": "Food Bank Intake Tool",
+        "student": "Studio team",
+        "year": 2026,
+        "blurb": "Replaced a paper intake process for a Honolulu partner. Still in use.",
+        "media": [
+          {
+            "type": "image",
+            "src": "assets/sample/studio-app.svg"
+          }
+        ],
+        "consent": true
+      }
+    ],
+    "data-science-ml": [
+      {
+        "id": "s4",
+        "title": "Reef Fish Classifier",
+        "student": "Noelani P.",
+        "year": 2026,
+        "blurb": "1,400 photos collected at Hanauma Bay, hand-labelled, then fine-tuned on the lab machines.",
+        "media": [
+          {
+            "type": "image",
+            "src": "assets/sample/reef-classifier.svg"
+          }
+        ],
+        "links": [
+          {
+            "label": "Notebook",
+            "url": "https://example.com"
+          }
+        ],
+        "consent": true
+      }
+    ]
+  }
+}
