@@ -8,22 +8,26 @@ window.Work = (function () {
   let manifest = null, base = window.CS_CONFIG.WORK_BASE, loaded = false;
   const esc = s => window.esc(s);
 
+  /* The sample work stands in while the work repo can't be reached, and while
+     it's reachable but has no projects yet, so the site never looks empty. */
   async function load() {
     if (loaded) return manifest;
     loaded = true;
     const cfg = window.CS_CONFIG;
+    let reason = 'unreachable';
     try {
       const res = await fetch(cfg.WORK_BASE + cfg.WORK_MANIFEST, { cache: 'no-cache' });
       if (!res.ok) throw new Error(res.status);
       manifest = await res.json();
-    } catch (e) {
-      try {
-        const res = await fetch(cfg.FALLBACK_MANIFEST, { cache: 'no-cache' });
-        manifest = await res.json();
-        base = '';                      // sample media paths are site-relative
-        manifest._isSample = true;
-      } catch (e2) { manifest = { courses: {} }; }
-    }
+      if (Object.values(manifest.courses || {}).some(list => list && list.length)) return manifest;
+      reason = 'empty';
+    } catch (e) { /* unreachable */ }
+    try {
+      const res = await fetch(cfg.FALLBACK_MANIFEST, { cache: 'no-cache' });
+      manifest = await res.json();
+      base = '';                      // sample media paths are site-relative
+      manifest._isSample = reason;
+    } catch (e2) { manifest = { courses: {} }; }
     return manifest;
   }
 
@@ -107,10 +111,22 @@ window.Work = (function () {
 
   function visualEl(m, project, extra = '') {
     if (m.type === 'video') {
-      return `<video class="work-media" src="${esc(url(m.src))}" muted loop playsinline autoplay preload="metadata" ${extra}></video>`;
+      return `<video class="work-media" src="${esc(url(m.src))}" data-title="${esc(project.title)}" muted loop playsinline autoplay preload="metadata" ${extra}></video>`;
     }
-    return `<img class="work-media" src="${esc(url(m.src))}" alt="${esc(m.alt || project.title)}" loading="lazy">`;
+    return `<img class="work-media" src="${esc(url(m.src))}" data-title="${esc(project.title)}" alt="${esc(m.alt || project.title)}" loading="lazy">`;
   }
+
+  /* A cover that doesn't load (a typo, or a screenshot nobody added) shows the
+     title tile instead of the browser's broken-image icon. */
+  document.addEventListener('error', e => {
+    const el = e.target;
+    if (!(el instanceof Element) || !el.matches('img.work-media, video.work-media')) return;
+    const tile = document.createElement('span'), name = document.createElement('span');
+    tile.className = 'work-media work-media-blank';
+    name.textContent = el.dataset.title || '';
+    tile.append(name);
+    el.replaceWith(tile);
+  }, true);
 
   /* A gallery card. The whole card is one button that opens the project
      on the page's stage; the course link (home page only) sits above it. */
@@ -133,6 +149,7 @@ window.Work = (function () {
 
   return {
     load, forCourse, randomFor, sample, card, url, esc, embedOf, coverOf, visualEl,
-    isSample: () => !!(manifest && manifest._isSample)
+    isSample: () => !!(manifest && manifest._isSample),
+    sampleReason: () => (manifest && manifest._isSample) || ''
   };
 })();

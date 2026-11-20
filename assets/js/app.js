@@ -50,7 +50,9 @@
     const b = document.createElement('p');
     b.className = 'mono';
     b.style.cssText = 'color:var(--warn);margin-top:18px;font-size:.66rem';
-    b.textContent = 'Sample work — point WORK_BASE in assets/js/config.js at your repo to go live.';
+    b.textContent = window.Work.sampleReason() === 'empty'
+      ? 'Sample work — shown until the work repo has its first project.'
+      : 'Sample work — point WORK_BASE in assets/js/config.js at your repo to go live.';
     document.querySelector('#work .wrap').appendChild(b);
   }
 })();

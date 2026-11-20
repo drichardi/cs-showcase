@@ -196,6 +196,8 @@ section{padding:clamp(34px,5vw,64px) 0;scroll-margin-top:66px}
 .stage-play:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
 .stage-play .play-chip{left:50%;top:50%;bottom:auto;translate:-50% -50%;font-size:.8rem;padding:12px 20px 12px 16px;gap:10px}
 .stage-play .play-chip::before{border-left-width:12px;border-top-width:8px;border-bottom-width:8px}
+.stage-play .work-media-blank{font-size:clamp(1.3rem,3vw,2.1rem);padding:24px}
+.stage-play .work-media-blank > span{translate:0 -64px}
 .stage-media:fullscreen{background:#000;align-items:center}
 .stage-media:fullscreen .stage-frame{border-radius:0;box-shadow:none}
 .stage-info{min-width:0;width:100%;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:28px;align-items:start}

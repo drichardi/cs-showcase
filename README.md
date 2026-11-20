@@ -24,8 +24,9 @@ assets/sample/           placeholder thumbnails and a sample p5 sketch (delete o
 WORK_BASE: "https://YOUR-ORG.github.io/cs-student-work/",
 ```
 
-Until that URL resolves, the site quietly falls back to `data/sample-work.json` and
-shows a small note under the gallery. Nothing breaks.
+Until that URL resolves, and while the work repo has no projects in it yet, the site
+quietly falls back to `data/sample-work.json` and shows a small note under the gallery.
+Nothing breaks. Once the first real project is published, the samples disappear.
 
 ## Changing course content
 
