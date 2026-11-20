@@ -23,35 +23,41 @@
   document.body.style.setProperty('--c', col);
 
   const projects = window.Work.forCourse(c.slug);
+  const items = projects.map(p => ({ slug: c.slug, project: p }));
 
+  /* Student work leads the page: one project large, the rest underneath.
+     The course description follows it. */
   root.innerHTML = `
     <div class="wrap course-hero">
       <p class="mono line-name">${esc(line.label || '')}</p>
       <h1>${esc(c.name)}</h1>
       ${c.subtitle ? `<p class="sub">${esc(c.subtitle)}</p>` : ''}
       <p class="tl">${esc(c.tagline)}</p>
-      <dl class="facts">
-        <div><dt>Length</dt><dd>${c.semesters === 2 ? 'Full year' : '1 semester'}</dd></div>
-        <div><dt>Prerequisite</dt><dd>${esc(c.prereqText)}</dd></div>
-        <div><dt>Counts toward</dt><dd>DTE distinction${c.countsAsProgramming ? ' · programming semesters' : ''}</dd></div>
-      </dl>
+    </div>
+
+    <div class="wrap course-work">
+      ${items.length ? `
+        <div class="stage-host" id="stage"></div>
+        ${items.length > 1 ? `
+          <p class="more-head mono">${items.length} projects from ${esc(c.short || c.name)}</p>
+          <div class="gallery gallery-sm" id="courseGallery"></div>` : ''}`
+      : `<div class="empty-work">No student work posted yet. Drop a folder into
+           <code style="color:var(--ink-2)">${esc(c.slug)}/</code> in the work repo and it shows up here.</div>`}
     </div>
 
     <div class="wrap course-body">
       <div>
+        <dl class="facts">
+          <div><dt>Length</dt><dd>${c.semesters === 2 ? 'Full year' : '1 semester'}</dd></div>
+          <div><dt>Prerequisite</dt><dd>${esc(c.prereqText)}</dd></div>
+          <div><dt>Counts toward</dt><dd>DTE distinction${c.countsAsProgramming ? ' · programming semesters' : ''}</dd></div>
+        </dl>
         ${c.quote && c.quote.text ? `<blockquote class="pull lg${c.quote.placeholder ? ' is-placeholder' : ''}">
             ${esc(c.quote.text)}<cite>${esc(c.quote.by || '')}${c.quote.placeholder ? ' · sample quote' : ''}</cite>
           </blockquote>` : ''}
         <ul class="hl">${c.highlights.map(h => `<li>${esc(h)}</li>`).join('')}</ul>
         <p class="about">${esc(c.about)}</p>
         ${c.note ? `<div class="callout">${esc(c.note)}</div>` : ''}
-
-        <div id="courseWork" style="margin-top:34px">
-          ${projects.length
-            ? `<div class="gallery">${projects.map(p => window.Work.card(c.slug, p)).join('')}</div>`
-            : `<div class="empty-work">No student work posted yet. Drop a folder into
-                 <code style="color:var(--ink-2)">${esc(c.slug)}/</code> in the work repo and it shows up here.</div>`}
-        </div>
       </div>
 
       <aside>
@@ -73,4 +79,18 @@
         </div>
       </aside>
     </div>`;
+
+  if (!items.length) return;
+
+  /* #p=<project-id> opens that project first, so a student can share a link to
+     their own work. Otherwise the opening project is chosen at random. */
+  const stage = window.Stage(document.getElementById('stage'));
+  const want = decodeURIComponent((location.hash.match(/p=([^&]+)/) || [])[1] || '');
+  const first = items.find(it => String(it.project.id) === want)
+    || items[Math.floor(Math.random() * items.length)];
+  stage.show(first);
+
+  const galleryEl = document.getElementById('courseGallery');
+  if (galleryEl) window.Stage.gallery(galleryEl, items, stage, it =>
+    history.replaceState(null, '', '#p=' + encodeURIComponent(it.project.id)));
 })();

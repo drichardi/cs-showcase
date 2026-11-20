@@ -30,12 +30,18 @@
   const m = location.hash.match(/tag=([\w-]+)/);
   if (m) { window.__tag = m[1]; window.CSMap.filter(m[1]); }
 
+  /* One project per course. A playable one gets the stage when there is one. */
+  const stage = window.Stage(document.getElementById('stage'));
   function renderGallery() {
-    const picks = window.Work.sample(window.CS_CONFIG.GALLERY_COUNT, data.courses.map(c => c.slug));
     const host = document.getElementById('gallery');
-    host.innerHTML = picks.length
-      ? picks.map(p => window.Work.card(p.slug, p.project, course(p.slug).short)).join('')
-      : `<div class="empty-work" style="grid-column:1/-1">Student work appears here once the work repo has projects in it.</div>`;
+    const picks = window.Work.sample(window.CS_CONFIG.GALLERY_COUNT, data.courses.map(c => c.slug))
+      .map(p => ({ slug: p.slug, project: p.project, courseName: course(p.slug).short }));
+    if (!picks.length) {
+      host.innerHTML = `<div class="empty-work" style="grid-column:1/-1">Student work appears here once the work repo has projects in it.</div>`;
+      return;
+    }
+    stage.show(picks.find(p => window.Work.embedOf(p.project)) || picks[0]);
+    window.Stage.gallery(host, picks, stage);
   }
   document.getElementById('btnReshuffle').addEventListener('click', renderGallery);
   renderGallery();

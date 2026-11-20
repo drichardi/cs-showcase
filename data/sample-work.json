@@ -4,6 +4,21 @@
   "courses": {
     "intro-programming": [
       {
+        "id": "s7",
+        "title": "Tide Pool",
+        "student": "Noa P.",
+        "year": 2026,
+        "blurb": "Forty fish that scatter from the mouse. Click to drop a stone; press space to add a fish.",
+        "media": [
+          {
+            "type": "embed",
+            "src": "assets/sample/tide-pool/index.html",
+            "size": "600x400"
+          }
+        ],
+        "consent": true
+      },
+      {
         "id": "s1",
         "title": "Generative Reef Patterns",
         "student": "Maile K.",

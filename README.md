@@ -7,15 +7,17 @@ index.html
 data/courses.json        ← all course content lives here
 data/sample-work.json    ← placeholder work, shown until the work repo is live
 assets/js/config.js      ← the one plumbing file: where the work repo lives
-assets/js/…              topo backdrop, map, planner, work loader, boot
+assets/js/…              topo backdrop, map, planner, work loader, stage, boot
 assets/css/style.css
-assets/sample/           placeholder thumbnails (delete once real work exists)
+assets/sample/           placeholder thumbnails and a sample p5 sketch (delete once real work exists)
 ```
 
 ## Setup
 
 1. Push this repo, then turn on Pages (Settings → Pages → deploy from `main`, root).
-2. Set up the companion `cs-student-work` repo and turn on Pages there too.
+2. Set up the companion `cs-student-work` repo and turn on Pages there too, with the source set to
+   **GitHub Actions** (Settings → Pages → Build and deployment → Source), not "deploy from a branch".
+   Its workflow builds `manifest.json` and deploys it, and fails at the Pages step until this is set.
 3. Edit **one line** in `assets/js/config.js`:
 
 ```js
@@ -34,9 +36,9 @@ A course entry:
 
 ```jsonc
 {
-  "slug": "applied-ml",            // must match the work-repo folder name
-  "name": "Applied Machine Learning",
-  "short": "Applied ML",           // used in prereq messages
+  "slug": "data-science-ml",       // must match the work-repo folder name
+  "name": "Data Science and Machine Learning",
+  "short": "Data Sci & ML",        // used in prereq messages
   "line": "tier2",                 // which coloured line it sits on
   "semesters": 1,                  // 2 = full year, occupies both slots of a grade
   "countsAsProgramming": true,     // feeds the capstone's two-semester rule
@@ -72,3 +74,15 @@ so the gaps stay meaningful.
 
 A built route is encoded into the URL hash, so a student can send their plan to a
 counselor or parent with no account and no backend.
+
+## Student work comes first
+
+Each course page opens with one of that course's projects shown large, chosen at
+random, with every other project from the course in a grid underneath. Clicking a
+card loads it into the large view. A playable project (a p5 sketch, an itch.io game)
+runs right there, scaled up to fill the space; sketches with a fixed canvas keep the
+mouse lined up at any scale. `course.html?c=intro-programming#p=<folder-name>` opens
+a specific project first, so a student can share a link to their own work.
+
+The home page does the same with one project per course, right under the hero.
+How to add sketches and size them is in the work repo's README.
