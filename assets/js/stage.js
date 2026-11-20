@@ -38,8 +38,9 @@ window.Stage = function (host) {
     const media = host.querySelector('.stage-media'), box = host.querySelector('.stage-frame');
     if (!media || !box || !current) return;
     const full = document.fullscreenElement === media;
+    const theater = inTheater();     // the home page's fit-the-window layout
     const availW = media.clientWidth;
-    const availH = full ? media.clientHeight : Math.max(240, window.innerHeight - 150);
+    const availH = full || theater ? media.clientHeight : Math.max(240, window.innerHeight - 150);
     const emb = W.embedOf(current.project);
     const f = box.querySelector('iframe');
     let w, h;
@@ -57,8 +58,12 @@ window.Stage = function (host) {
     box.style.height = Math.floor(h) + 'px';
     // The caption lines up under the piece, like a label on a wall.
     const info = host.querySelector('.stage-info');
-    if (info && !full) info.style.maxWidth = Math.floor(Math.max(w, Math.min(availW, 560))) + 'px';
+    if (info && !full) info.style.maxWidth = theater ? '' : Math.floor(Math.max(w, Math.min(availW, 560))) + 'px';
   }
+
+  /* In the theater layout the CSS dissolves the stage's own boxes (display:contents)
+     so its parts can sit in the page's grid: the project left, its caption right. */
+  function inTheater() { return getComputedStyle(host).display === 'contents'; }
 
   /* item = { slug, project, courseName }
      autoload: start a playable project now (default: its own autoplay setting)
@@ -116,6 +121,7 @@ window.Stage = function (host) {
 
   /* Bring the stage into view if a gallery click happened far below it. */
   function reveal() {
+    if (inTheater()) return;          // everything is already on screen
     const r = host.getBoundingClientRect();
     if (r.top < 60 || r.top > window.innerHeight * 0.4) host.scrollIntoView({ block: 'start' });
   }
@@ -124,7 +130,11 @@ window.Stage = function (host) {
   else window.addEventListener('resize', fit);
   document.addEventListener('fullscreenchange', fit);
 
-  return { show, reveal, fit, get current() { return current; } };
+  /* Stop a running project (unload its iframe, keep the caption) and bring it back. */
+  function pause() { if (current && host.querySelector('.stage-frame.is-live')) show(current, { autoload: false }); }
+  function resume() { if (current && !host.querySelector('.stage-frame.is-live')) show(current); }
+
+  return { show, reveal, fit, pause, resume, get current() { return current; } };
 };
 
 /* Render cards into `el`; clicking one plays it on `stage`. */

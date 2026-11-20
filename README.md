@@ -85,5 +85,14 @@ runs right there, scaled up to fill the space; sketches with a fixed canvas keep
 mouse lined up at any scale. `course.html?c=intro-programming#p=<folder-name>` opens
 a specific project first, so a student can share a link to their own work.
 
-The home page does the same with one project per course, right under the hero.
-How to add sketches and size them is in the work repo's README.
+## Home page tabs
+
+The home page has three tabs, one shown at a time: **Student work** (the default),
+**Courses** (the intro and the map) and **Plan a route** (the planner and FAQ). The URL
+hash picks the tab (`#work`, `#map`, `#plan`), so links from course pages, shared
+routes (`#route=…`), tag filters (`#tag=…`) and the back button all land on the right one.
+
+Student work shows one project per course. On screens at least 1000×560 it fits the
+window: the project fills the left and the heading, caption and the other projects sit
+in a column on the right. Smaller screens stack them. Switching tabs stops a running
+sketch or game. How to add sketches and size them is in the work repo's README.

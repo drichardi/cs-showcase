@@ -193,9 +193,11 @@ window.Planner = (function () {
     } catch (e) { plan = {}; }
   }
 
+  /* Only after someone changes their route, never on page load: the hash also
+     says which tab is open, and an empty route keeps the planner tab (#plan). */
   function syncHash() {
     const code = encode();
-    history.replaceState(null, '', code ? '#route=' + code : location.pathname);
+    history.replaceState(null, '', code ? '#route=' + code : '#plan');
   }
 
   function refresh() { renderGrid(); renderReadout(); syncHash(); }
@@ -226,7 +228,7 @@ window.Planner = (function () {
       const pre = e.target.closest('[data-preset]');
       if (pre) {
         applyPreset(data.presets[+pre.dataset.preset]);
-        document.getElementById('plan').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        document.querySelector('.planner').scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }
       if (!e.target.closest('.picker')) closePicker();
@@ -244,7 +246,7 @@ window.Planner = (function () {
       setTimeout(() => { e.target.textContent = 'Copy shareable link'; }, 2200);
     });
 
-    refresh();
+    renderGrid(); renderReadout();
   }
 
   /* Lay a preset out across the four years, earliest slot that validates. */

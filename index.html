@@ -18,9 +18,9 @@
   <div class="wrap">
     <a class="brand" href="index.html"><span class="dot"></span> Computer Science</a>
     <nav>
-      <a href="#work">Student work</a>
-      <a href="#map">Courses</a>
-      <a href="#plan">Plan a route</a>
+      <a href="#work" data-tab="work">Student work</a>
+      <a href="#map" data-tab="map">Courses</a>
+      <a href="#plan" data-tab="plan">Plan a route</a>
       <span class="ctl"></span>
     </nav>
   </div>
@@ -34,79 +34,91 @@
 </div>
 
 <main id="top">
-  <section class="hero">
-    <div class="wrap">
-      <p class="eyebrow mono">Punahou School · Computer Science · 2026–27</p>
-      <h1>Eight courses. Many ways through.</h1>
-      <p class="lede">Start with no experience at all, or place past the first tier. Seven semesters earns the DTE distinction. See what each course covers, what students built in it, and plan your own route.</p>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="#plan">Plan your route →</a>
-        <a class="btn btn-ghost" href="#map">Browse courses</a>
-      </div>
-      <div class="hero-stats">
-        <div><span id="stat-courses">8</span><small>courses</small></div>
-        <div><span>7</span><small>semesters for DTE distinction</small></div>
-        <div><span>0</span><small>experience needed to start</small></div>
-      </div>
-    </div>
-  </section>
+  <!-- Three views, one per tab. app.js shows one at a time from the URL hash
+       (#work, #map, #plan). The sections have no ids matching those hashes, so the
+       browser never jumps around on its own when a tab changes. -->
 
-  <section id="work">
-    <div class="wrap">
-      <div class="sec-head">
-        <div>
-          <h2>What students make</h2>
-          <p>Pick any project below to open it here. The interactive ones run right on the page.</p>
-        </div>
-        <button class="btn btn-ghost" id="btnReshuffle" style="margin-left:auto">Shuffle ↻</button>
-      </div>
-      <div class="stage-host" id="stage"></div>
-      <div class="gallery gallery-sm" id="gallery"></div>
-    </div>
-  </section>
-
-  <section id="map">
-    <div class="wrap">
-      <div class="sec-head"><div><h2>The map</h2></div></div>
-      <div class="tag-bar" id="tagBar"></div>
-      <div class="map-shell">
-        <div class="map-legend" id="legend"></div>
-        <div class="map-grid" id="mapGrid"><svg id="connectors" aria-hidden="true"></svg></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="plan">
-    <div class="wrap">
-      <div class="sec-head"><div>
-        <h2>Build a hypothetical four years</h2>
-        <p>The planner checks prerequisites, counts semesters, and shows what your route never touches.</p>
-      </div></div>
-      <div class="planner">
-        <div class="panel">
-          <div class="presets" id="presets"></div>
-          <div class="year-row" style="margin-bottom:6px"><span></span><span class="slot-head">Fall</span><span class="slot-head">Spring</span></div>
-          <div class="grid-years" id="grid"></div>
-          <div class="plan-actions">
-            <button id="btnClear">Clear</button>
-            <button id="btnShare">Copy shareable link</button>
+  <div class="view" data-view="work">
+    <section class="work-sec">
+      <div class="wrap">
+        <div class="theater">
+          <div class="sec-head work-head">
+            <div>
+              <h2>What students make</h2>
+              <p>Pick any project to open it here. The interactive ones run right on the page.</p>
+            </div>
+            <button class="btn btn-ghost" id="btnReshuffle">Shuffle ↻</button>
           </div>
+          <div class="stage-host" id="stage"></div>
+          <div class="gallery gallery-sm" id="gallery"></div>
         </div>
-        <div class="panel readout" id="readout"></div>
       </div>
-    </div>
-  </section>
+    </section>
+  </div>
 
-  <section id="faq">
-    <div class="wrap">
-      <div class="foot-grid qa">
-        <div><h5>I've been coding for years</h5><p>Take the placement interview — walk us through a program or two you've built and you start in Tier 2.</p></div>
-        <div><h5>What's the DTE distinction?</h5><p>Seven semesters of CS coursework. Start by sophomore year if you're aiming for it.</p></div>
-        <div><h5>Do I have to take an AP?</h5><p>No. Intro → Data Structures and Algorithms → Software Development Studio (K) reaches the capstone with no AP at all.</p></div>
-        <div><h5>Can I double up?</h5><p>Often. One AP plus Data Structures and Algorithms tends to leave students with a deeper skill set than two APs.</p></div>
+  <div class="view" data-view="map" hidden>
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow mono">Punahou School · Computer Science · 2026–27</p>
+        <h1>Eight courses. Many ways through.</h1>
+        <p class="lede">Start with no experience at all, or place past the first tier. Seven semesters earns the DTE distinction. See what each course covers, what students built in it, and plan your own route.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#plan">Plan your route →</a>
+          <a class="btn btn-ghost" href="#work">See student work</a>
+        </div>
+        <div class="hero-stats">
+          <div><span id="stat-courses">8</span><small>courses</small></div>
+          <div><span>7</span><small>semesters for DTE distinction</small></div>
+          <div><span>0</span><small>experience needed to start</small></div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <section class="map-sec">
+      <div class="wrap">
+        <div class="sec-head"><div><h2>The map</h2></div></div>
+        <div class="tag-bar" id="tagBar"></div>
+        <div class="map-shell">
+          <div class="map-legend" id="legend"></div>
+          <div class="map-grid" id="mapGrid"><svg id="connectors" aria-hidden="true"></svg></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="view" data-view="plan" hidden>
+    <section class="plan-sec">
+      <div class="wrap">
+        <div class="sec-head"><div>
+          <h2>Build a hypothetical four years</h2>
+          <p>The planner checks prerequisites, counts semesters, and shows what your route never touches.</p>
+        </div></div>
+        <div class="planner">
+          <div class="panel">
+            <div class="presets" id="presets"></div>
+            <div class="year-row" style="margin-bottom:6px"><span></span><span class="slot-head">Fall</span><span class="slot-head">Spring</span></div>
+            <div class="grid-years" id="grid"></div>
+            <div class="plan-actions">
+              <button id="btnClear">Clear</button>
+              <button id="btnShare">Copy shareable link</button>
+            </div>
+          </div>
+          <div class="panel readout" id="readout"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-sec">
+      <div class="wrap">
+        <div class="foot-grid qa">
+          <div><h5>I've been coding for years</h5><p>Take the placement interview — walk us through a program or two you've built and you start in Tier 2.</p></div>
+          <div><h5>What's the DTE distinction?</h5><p>Seven semesters of CS coursework. Start by sophomore year if you're aiming for it.</p></div>
+          <div><h5>Do I have to take an AP?</h5><p>No. Intro → Data Structures and Algorithms → Software Development Studio (K) reaches the capstone with no AP at all.</p></div>
+          <div><h5>Can I double up?</h5><p>Often. One AP plus Data Structures and Algorithms tends to leave students with a deeper skill set than two APs.</p></div>
+        </div>
+      </div>
+    </section>
+  </div>
 </main>
 
 <footer>
