@@ -406,7 +406,7 @@ footer p,.qa p{margin:0 0 8px;line-height:1.6}
 
 /* C · wayfinding — oversized opening mark, heavy type */
 [data-skin="c"] .pull{font-weight:600;color:var(--ink);padding-left:22px}
-[data-skin="c"] .pull::before{content:"\\201C";position:absolute;left:0;top:-6px;
+[data-skin="c"] .pull::before{content:"\201C";position:absolute;left:0;top:-6px;
   font-family:var(--display);font-size:2.2rem;line-height:1;color:var(--c,var(--blue-3));opacity:.5}
 [data-skin="c"] .pull.lg{font-size:1.4rem;font-weight:700;letter-spacing:-.02em;padding-left:34px}
 [data-skin="c"] .pull.lg::before{font-size:3.4rem;top:-10px}
