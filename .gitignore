@@ -1,2 +1,4 @@
 .DS_Store
 node_modules/
+admin-api/.dev.vars
+admin-api/.wrangler/

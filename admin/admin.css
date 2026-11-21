@@ -1,0 +1,19 @@
+/* Teacher dashboard. Builds on the site's style.css tokens, so all three skins work. */
+.admin{padding-top:clamp(28px,6vw,64px);padding-bottom:64px;max-width:760px}
+.admin-label{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.82);margin-right:6px}
+.admin-card{background:var(--popover,var(--surface));border:1px solid var(--rule);border-radius:var(--radius);
+  padding:clamp(20px,4vw,34px);box-shadow:var(--shadow)}
+.admin-card + .admin-card{margin-top:18px}
+.admin-card h1{font-size:clamp(1.6rem,4vw,2.2rem)}
+.admin-card h2{font-size:1.3rem}
+.admin-card p{color:var(--ink-2);margin:12px 0 0;max-width:56ch}
+.admin-eyebrow{color:var(--accent);margin:0 0 10px!important}
+.admin-google{margin-top:22px;min-height:44px}
+.admin-note{font-size:.84rem;color:var(--ink-3)!important}
+.admin-card .btn{margin-top:20px}
+.admin-me{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.admin-me > div{flex:1 1 220px}
+.admin-me .btn{margin-top:0}
+.admin-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover}
+.admin-who{font-family:var(--mono);font-size:.78rem;margin-top:4px!important}
+.admin-soon{border-style:dashed;box-shadow:none}

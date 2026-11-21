@@ -78,7 +78,7 @@ window.CSMap = (function () {
 
   function drawConnectors() {
     const grid = document.getElementById('mapGrid'), svg = document.getElementById('connectors');
-    if (!grid || !svg) return;
+    if (!grid || !svg || !data) return;      // a resize can arrive before the courses have loaded
     const gb = grid.getBoundingClientRect();
     svg.setAttribute('viewBox', `0 0 ${gb.width} ${gb.height}`);
     svg.innerHTML = '';

@@ -1,0 +1,9 @@
+# Copy to .dev.vars for running locally (node dev.mjs). Never commit .dev.vars.
+# On Cloudflare these are set with: npx wrangler secret put <NAME>
+
+# Any long random string (at least 32 characters). Make one with:
+#   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+SESSION_SECRET=
+
+# Teachers who may sign in, separated by commas.
+ALLOWED_EMAILS=

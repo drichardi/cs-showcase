@@ -1,0 +1,12 @@
+# The dashboard API on Cloudflare Workers. Deploy from this folder: npx wrangler deploy
+name = "cs-work-api"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Not secret. The teacher list and the session secret are secrets instead:
+#   npx wrangler secret put SESSION_SECRET
+#   npx wrangler secret put ALLOWED_EMAILS
+[vars]
+GOOGLE_CLIENT_ID = "995828673256-6jslv71v52kdb45o05r8dahggq7jsiu2.apps.googleusercontent.com"
+ALLOWED_DOMAIN = "punahou.edu"
+ALLOWED_ORIGINS = "https://drichardi.github.io,http://localhost:8123"

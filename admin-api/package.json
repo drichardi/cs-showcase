@@ -1,0 +1,11 @@
+{
+  "name": "cs-work-api",
+  "private": true,
+  "type": "module",
+  "description": "API for the CS work dashboard (Cloudflare Worker)",
+  "scripts": {
+    "dev": "node dev.mjs",
+    "test": "node --test test/*.test.mjs",
+    "deploy": "npx wrangler deploy"
+  }
+}
