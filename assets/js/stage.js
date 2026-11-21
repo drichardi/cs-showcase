@@ -48,8 +48,12 @@ window.Stage = function (host) {
     const f = box.querySelector('iframe');
     let w, h;
     if (emb && emb.size) {
+      // Shrink to fit if the canvas is bigger than the space, but don't enlarge past
+      // MAX_ZOOM: a canvas stretched past its own resolution looks soft and pixelated.
+      // Full screen is a deliberate choice, so it may fill the screen.
       const [sw, sh] = emb.size;
-      const k = Math.min(availW / sw, availH / sh, 3);
+      const cap = full ? 3 : (window.CS_CONFIG.MAX_ZOOM || 1);
+      const k = Math.min(availW / sw, availH / sh, cap);
       w = sw * k; h = sh * k;
       if (f) Object.assign(f.style, { width: sw + 'px', height: sh + 'px', transform: `scale(${k})` });
     } else {
