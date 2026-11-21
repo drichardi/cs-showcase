@@ -32,8 +32,19 @@
     try { res = await fetch(API + path, { ...options, headers }); }
     catch (e) { throw { error: 'offline' }; }
     const body = await res.json().catch(() => ({}));
+    if (res.status === 401 && path !== '/session') { signOut(); throw { status: 401, ...body }; }
     if (!res.ok) throw { status: res.status, ...body };
     return body;
+  }
+
+  /* A picture from the (private) repo, fetched with the session and handed back
+     as a local object URL for an <img>. */
+  async function file(path) {
+    const res = await fetch(API + '/file?path=' + encodeURIComponent(path),
+      { headers: { Authorization: 'Bearer ' + session.token } });
+    if (res.status === 401) { signOut(); throw { error: 'signed_out' }; }
+    if (!res.ok) throw { status: res.status };
+    return URL.createObjectURL(await res.blob());
   }
 
   /* ---------- views ---------- */
@@ -85,13 +96,11 @@
           </div>
           <button class="btn btn-ghost" id="signOut">Sign out</button>
         </section>
-        <section class="admin-card admin-soon">
-          <h2>Projects</h2>
-          <p>Sign-in works. The list of projects, and adding and editing them, come next.</p>
-        </section>`
+        <section class="admin-projects" id="projects"></section>`
     }[state]();
 
     if (state === 'signed-out') renderGoogleButton();
+    if (state === 'signed-in') window.AdminProjects.mount(document.getElementById('projects'), { api, file });
     const again = document.getElementById('tryAgain');
     if (again) again.addEventListener('click', signOut);
     const out = document.getElementById('signOut');

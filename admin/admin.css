@@ -1,5 +1,7 @@
 /* Teacher dashboard. Builds on the site's style.css tokens, so all three skins work. */
-.admin{padding-top:clamp(28px,6vw,64px);padding-bottom:64px;max-width:760px}
+.admin{padding-top:clamp(28px,6vw,64px);padding-bottom:64px}
+.admin > .admin-card{max-width:720px}
+.admin[data-state="signed-in"]{padding-top:clamp(18px,3vw,30px)}
 .admin-label{font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.82);margin-right:6px}
 .admin-card{background:var(--popover,var(--surface));border:1px solid var(--rule);border-radius:var(--radius);
   padding:clamp(20px,4vw,34px);box-shadow:var(--shadow)}
@@ -16,4 +18,39 @@
 .admin-me .btn{margin-top:0}
 .admin-avatar{width:56px;height:56px;border-radius:50%;object-fit:cover}
 .admin-who{font-family:var(--mono);font-size:.78rem;margin-top:4px!important}
-.admin-soon{border-style:dashed;box-shadow:none}
+
+/* ---------- projects (step 2) ---------- */
+.admin[data-state="signed-in"] > .admin-me{max-width:none;padding:14px 20px;box-shadow:none}
+.admin-me h1{font-size:1.3rem}
+.admin-me .admin-avatar{width:42px;height:42px}
+.admin-projects{margin-top:26px}
+.proj-head{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.proj-head h2{font-size:clamp(1.4rem,3vw,1.9rem)}
+.proj-summary{color:var(--ink-2);margin:6px 0 0;font-size:.92rem}
+.proj-head .btn{margin-left:auto;padding:8px 15px;font-size:.84rem}
+.proj-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:18px 0 16px;padding:12px;
+  background:var(--popover,var(--surface));border:1px solid var(--rule);border-radius:var(--radius)}
+.proj-tools input[type=search]{flex:1 1 240px;min-width:0}
+.proj-tools input[type=search],.proj-tools select{font:inherit;font-size:.88rem;padding:8px 10px;border:1px solid var(--rule-2);
+  border-radius:3px;background:var(--paper);color:var(--ink)}
+.proj-tools select:disabled{opacity:.55}
+.proj-check{display:flex;gap:6px;align-items:center;font-size:.86rem;color:var(--ink-2);padding:0 4px}
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.proj-card{border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;background:var(--popover,var(--surface));display:flex;flex-direction:column}
+.proj-thumb{position:relative;aspect-ratio:16/10;background:var(--buff-2);display:grid;place-items:center;overflow:hidden}
+.proj-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.proj-thumb.has-media .proj-blank{display:none}
+.proj-blank{font-family:var(--display);font-weight:600;color:var(--ink-2);padding:10px;text-align:center}
+.proj-status{position:absolute;left:8px;top:8px;font-family:var(--mono);font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 7px;border-radius:2px;background:var(--paper);color:var(--ink);border-left:3px solid var(--l5)}
+.is-hidden .proj-status{border-left-color:var(--ink-3)}
+.is-not-set-up .proj-status,.is-broken .proj-status{border-left-color:var(--l3)}
+.is-hidden .proj-media{filter:grayscale(.6) opacity(.8)}
+.proj-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:3px;flex:1}
+.proj-body h3{font-size:1rem}
+.proj-who{font-size:.84rem;color:var(--ink-2);margin:0}
+.proj-where{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:2px 0 0}
+.proj-issues{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
+.proj-issues li{font-size:.7rem;padding:2px 7px;border-radius:2px;background:var(--buff);color:var(--ink-2);border:1px solid var(--rule)}
+.proj-path{font-family:var(--mono);font-size:.58rem;color:var(--ink-3);margin:auto 0 0;padding-top:8px;word-break:break-all}
+.proj-link{font-size:.8rem;margin-top:6px;color:var(--accent)}

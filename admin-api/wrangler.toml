@@ -3,10 +3,16 @@ name = "cs-work-api"
 main = "src/index.js"
 compatibility_date = "2026-10-01"
 
-# Not secret. The teacher list and the session secret are secrets instead:
+# Not secret. The teacher list, the session secret and the GitHub App's key are
+# secrets instead:
 #   npx wrangler secret put SESSION_SECRET
 #   npx wrangler secret put ALLOWED_EMAILS
+#   npx wrangler secret put GITHUB_APP_KEY     (base64 PKCS#8; see README)
 [vars]
 GOOGLE_CLIENT_ID = "995828673256-6jslv71v52kdb45o05r8dahggq7jsiu2.apps.googleusercontent.com"
 ALLOWED_DOMAIN = "punahou.edu"
 ALLOWED_ORIGINS = "https://drichardi.github.io,http://localhost:8123"
+GITHUB_APP_ID = "5859084"
+GITHUB_INSTALLATION_ID = "184260096"
+GITHUB_REPO = "drichardi/cs-student-work"
+GITHUB_BRANCH = "main"

@@ -7,3 +7,6 @@ SESSION_SECRET=
 
 # Teachers who may sign in, separated by commas.
 ALLOWED_EMAILS=
+
+# The GitHub App key as base64 PKCS#8, one line (see README for the conversion).
+GITHUB_APP_KEY=
