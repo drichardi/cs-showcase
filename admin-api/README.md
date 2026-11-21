@@ -11,6 +11,8 @@ out 8-hour dashboard sessions, and reads (and later saves) projects in the priva
 | `GET /me` | Who is signed in |
 | `GET /projects` | Every project, shown or hidden, plus sketch folders with no `project.yml` yet, with what each is missing. Same rules as the work repo's `build_manifest.py` |
 | `GET /file?path=` | A cover picture or video from the repo, for thumbnails |
+| `POST /projects` | Add a project: details and files in, checked, then saved as one commit under the teacher's name, with `project.yml` (and `assignment.yml` for a new assignment) written for them |
+| `GET /status?commit=` | Whether that save is live yet (the work repo's Action run for it) |
 
 One dependency, `yaml` (run `npm install` once). Node runs it locally; `npx wrangler`
 deploys it.
@@ -52,6 +54,11 @@ node dev.mjs                       # http://localhost:8787
 With the site served on http://localhost:8123, `/admin/` uses this local API
 automatically.
 
+**Testing saves without touching real work:** create a branch in `cs-student-work`
+(for example `dashboard-test`, from `main`), add `GITHUB_BRANCH=dashboard-test` to
+`.dev.vars`, and restart `node dev.mjs`. The dashboard shows "Test mode" and saves go to
+that branch; the site only builds from `main`. Delete the branch and the line afterwards.
+
 ## Test
 
 ```
@@ -63,6 +70,8 @@ teacher list, the school domain, tokens for other apps, expired, forged or tampe
 sign-ins, removed teachers, and which pages may call the API. The project tests check
 the folder rules against a made-up repo: assignment folders, skipped folders, depth,
 sketches without a `project.yml`, broken files, missing covers, and `assignment.yml`.
+The save tests check folder names, the checks on what's sent (named by field), consent,
+file paths and sizes, and that the `project.yml` written reads back as the builder expects.
 
 ## Deploy (first time)
 

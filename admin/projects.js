@@ -69,7 +69,9 @@ window.AdminProjects = (function () {
             count('not-set-up') ? ` · ${count('not-set-up')} need details` : ''}${count('broken') ? ` · ${count('broken')} need fixing` : ''}</p>
         </div>
         <button class="btn btn-ghost" id="refresh" title="Load the latest from the repo">Refresh</button>
+        <button class="btn btn-primary" id="addProject">Add project</button>
       </div>
+      ${data.branch && data.branch !== 'main' ? `<p class="add-test">Test mode: this is the <b>${esc(data.branch)}</b> branch, not what the site shows.</p>` : ''}
       <div class="proj-tools" role="search">
         <input type="search" id="q" placeholder="Search title, student, assignment…" value="${esc(f.q)}" aria-label="Search projects">
         <select id="course" aria-label="Course">
@@ -98,6 +100,11 @@ window.AdminProjects = (function () {
     on('attention', 'change', e => { f.attention = e.target.checked; render(); });
     on('clear', 'click', e => { e.preventDefault(); f = { q: '', course: '', assignment: '', status: '', attention: false }; render(); });
     on('refresh', 'click', () => mount(el, mount.api));
+    on('addProject', 'click', () => window.AdminAdd.open(el, {
+      api: mount.api, data, courses,
+      keep: f.course ? { course: f.course, assignment: f.assignment } : {},
+      onClose: changed => changed ? mount(el, mount.api) : render()
+    }));
     loadThumbs();
   }
 

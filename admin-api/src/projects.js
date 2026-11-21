@@ -19,7 +19,7 @@ export async function listProjects(env) {
   if (tree.truncated) console.warn('Repo tree truncated: some projects may be missing');
   const found = discover(tree.tree);
   const texts = await blobTexts(env, [...found.shas]);
-  return { commit: ref.object.sha, ...assemble(found, texts) };
+  return { commit: ref.object.sha, branch: env.GITHUB_BRANCH, ...assemble(found, texts) };
 }
 
 /* Which folders are projects, from the repo's file list alone.

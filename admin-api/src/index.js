@@ -7,6 +7,8 @@
      GET  /projects  every project in cs-student-work, shown or hidden, plus
                      sketch folders that still need a project.yml
      GET  /file?path=…  a cover image or video from the (private) repo
+     POST /projects  add a project: details + files in, one commit out
+     GET  /status?commit=…  is that save published on the site yet?
 
    Everything except POST /session needs  Authorization: Bearer <session>.
 
@@ -17,6 +19,7 @@
 import { HttpError, corsHeaders, json } from './http.js';
 import { createSession, requireUser } from './auth.js';
 import { listProjects, readFile } from './projects.js';
+import { createProject, publishStatus } from './write.js';
 
 export default {
   async fetch(request, env) {
@@ -33,6 +36,14 @@ export default {
       if (route === 'GET /projects') {
         await requireUser(request, env);
         return json(await listProjects(env), 200, cors);
+      }
+      if (route === 'POST /projects') {
+        const user = await requireUser(request, env);
+        return json(await createProject(request, env, user), 200, cors);
+      }
+      if (route === 'GET /status') {
+        await requireUser(request, env);
+        return json(await publishStatus(env, url.searchParams.get('commit')), 200, cors);
       }
       if (route === 'GET /file') {
         await requireUser(request, env);
