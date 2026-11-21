@@ -82,7 +82,17 @@ Each course page opens with one of that course's projects shown large, chosen at
 random, with every other project from the course in a grid underneath. On wide screens
 the caption sits to the right of the project: title, students, term, blurb, and a
 "Try it" box when the project's `project.yml` has `instructions`. Clicking a card loads
-it into the large view. A playable project (a p5 sketch, an itch.io game)
+it into the large view.
+
+Under the project, a chip for each assignment (the folder projects sit in, e.g.
+`intro-programming/tiling/`) filters to that assignment, and "All" shows a row per
+assignment, picked at random by the same `ROW_SIZE` / `ROW_MIN` rule as the home page:
+small assignments share a row, with each card labelled. `#a=tiling` links straight to an
+assignment, and `#a=tiling&p=<project>` to one project in it. Titles and descriptions
+come from an optional `assignment.yml` in the work repo (see its README).
+
+"View code" opens the sketch's own code file as published with it, so it works with
+the work repo private. A playable project (a p5 sketch, an itch.io game)
 runs right there, scaled up to fill the space; sketches with a fixed canvas keep the
 mouse lined up at any scale. `course.html?c=intro-programming#p=<folder-name>` opens
 a specific project first, so a student can share a link to their own work.

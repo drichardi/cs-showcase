@@ -89,37 +89,25 @@
     addEventListener('resize', sizeTheater);
 
     const color = c => (data.lines.find(l => l.id === c.line) || {}).color || '';
-    const item = (c, p) => ({ slug: c.slug, project: p, courseName: c.short || c.name, color: color(c) });
+    const item = (c, p) => ({
+      slug: c.slug, project: p, courseName: c.short || c.name,
+      assignment: p.assignment || '', assignmentTitle: p.assignment ? window.Work.assignmentTitle(c.slug, p.assignment) : '',
+      tagLabel: c.short || c.name, tagColor: color(c)
+    });
+    // One group per course with shown work, in course order.
     const shown = data.courses
-      .map((c, order) => ({ c, order, list: window.Work.forCourse(c.slug) }))
-      .filter(x => x.list.length);
+      .map((c, order) => ({ c, order, items: window.Work.forCourse(c.slug).map(p => item(c, p)) }))
+      .filter(g => g.items.length);
 
-    /* Each course with at least ROW_MIN projects gets its own row of up to ROW_SIZE,
-       picked at random. Courses with fewer share rows, packed in course order and
-       never split across two, with each card labelled with its course. A course
-       with no projects gets no row. */
-    function buildRows() {
-      const size = window.CS_CONFIG.ROW_SIZE || 5, min = Math.min(window.CS_CONFIG.ROW_MIN || 4, size);
-      const rows = [];
-      shown.filter(x => x.list.length >= min).forEach(x => rows.push({
-        order: x.order, courses: [x.c], total: x.list.length,
-        items: window.Work.shuffled(x.list).slice(0, size).map(p => item(x.c, p))
-      }));
-      let shared = null;
-      shown.filter(x => x.list.length < min).forEach(x => {
-        if (!shared || shared.items.length + x.list.length > size) {
-          shared = { order: x.order, courses: [], items: [], total: 0 };
-          rows.push(shared);
-        }
-        shared.courses.push(x.c);
-        shared.total += x.list.length;
-        shared.items.push(...window.Work.shuffled(x.list).map(p => item(x.c, p)));
-      });
-      return rows.sort((a, b) => a.order - b.order);
-    }
+    /* Rows by course (ROW_SIZE / ROW_MIN in config.js, rule in Work.packRows):
+       a course with enough projects gets its own random row; smaller ones share
+       rows, each card labelled with its course; a course with none gets no row. */
+    const buildRows = () => window.Work.packRows(shown,
+      window.CS_CONFIG.ROW_SIZE || 5, window.CS_CONFIG.ROW_MIN || 4);
 
     function rowsHtml(rows) {
       return rows.map(r => {
+        r.courses = r.groups.map(g => g.c);
         const one = r.courses.length === 1, c = r.courses[0];
         const head = one
           ? `<a class="row-title" style="--c:${esc(color(c))}" href="course.html?c=${encodeURIComponent(c.slug)}">${esc(c.name)}</a>
@@ -130,7 +118,7 @@
         return `<div class="work-row">
           <div class="row-head">${head}</div>
           <div class="row-cards" style="--row:${window.CS_CONFIG.ROW_SIZE || 5}">
-            ${r.items.map(it => window.Work.card(it, { tag: !one })).join('')}
+            ${r.items.map(it => window.Work.card(it, { tag: !one, assignment: true })).join('')}
           </div>
         </div>`;
       }).join('');
@@ -143,7 +131,7 @@
     }
 
     function renderHome() {
-      const all = shown.flatMap(x => x.list.map(p => item(x.c, p)));
+      const all = shown.flatMap(g => g.items);
       if (!all.length) {
         document.getElementById('stage').innerHTML = `<div class="empty-work">${window.Work.failed()
           ? "Student work couldn't be loaded just now. Try again in a minute."

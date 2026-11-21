@@ -39,6 +39,25 @@ window.Work = (function () {
     return (manifest && manifest.courses && manifest.courses[slug]) || [];
   }
 
+  /* A course's assignments that have shown projects, in display order:
+     [{ id, title, blurb, count }]. id "" is "Other projects" (no assignment folder).
+     Falls back to working them out from the projects for an older manifest. */
+  function assignmentsFor(slug) {
+    const listed = manifest && manifest.assignments && manifest.assignments[slug];
+    if (listed) return listed;
+    const counts = {};
+    forCourse(slug).forEach(p => { counts[p.assignment || ''] = (counts[p.assignment || ''] || 0) + 1; });
+    return Object.keys(counts).sort((a, b) => (a === '') - (b === '') || a.localeCompare(b)).map(id => ({
+      id, count: counts[id], blurb: '',
+      title: id ? id.replace(/-/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase()) : 'Other projects'
+    }));
+  }
+
+  function assignmentTitle(slug, id) {
+    const a = assignmentsFor(slug).find(x => x.id === (id || ''));
+    return a ? a.title : '';
+  }
+
   function shuffled(list) {
     const a = list.slice();
     for (let i = a.length - 1; i > 0; i--) {
@@ -46,6 +65,30 @@ window.Work = (function () {
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
+  }
+
+  /* Rows of up to `size` cards, built from groups (courses on the home page,
+     assignments on a course page): [{ order, items }]. A group with at least `min`
+     items gets its own row, picked at random. Smaller groups share rows, packed in
+     order and never split across two. A group with no items gets no row.
+     Returns [{ groups, items, total }] in group order. */
+  function packRows(groups, size, min) {
+    min = Math.min(min, size);
+    const rows = [];
+    groups.filter(g => g.items.length >= min).forEach(g => rows.push({
+      order: g.order, groups: [g], total: g.items.length, items: shuffled(g.items).slice(0, size)
+    }));
+    let shared = null;
+    groups.filter(g => g.items.length && g.items.length < min).forEach(g => {
+      if (!shared || shared.items.length + g.items.length > size) {
+        shared = { order: g.order, groups: [], items: [], total: 0 };
+        rows.push(shared);
+      }
+      shared.groups.push(g);
+      shared.total += g.items.length;
+      shared.items.push(...shuffled(g.items));
+    });
+    return rows.sort((a, b) => a.order - b.order);
   }
 
   /* "Spring 2026" from semester + year; either may be missing. */
@@ -131,17 +174,19 @@ window.Work = (function () {
   }, true);
 
   /* A gallery card. The whole card is one button that opens the project on the
-     page's stage. item = { slug, project, courseName, color }. With tag: true the
-     card is labelled with its course (rows on the home page that mix courses). */
-  function card(item, { tag = false } = {}) {
+     page's stage. item = { slug, project, courseName, assignmentTitle, tagLabel, tagColor }.
+     tag: label the card (rows that mix courses or assignments say which each card is from).
+     assignment: name the assignment in the line under the title. */
+  function card(item, { tag = false, assignment = false } = {}) {
     const project = item.project, cover = coverOf(project), live = !!embedOf(project);
-    const by = [project.student || 'Student work', when(project)].filter(Boolean).join(' · ');
+    const by = [project.student || 'Student work', assignment && item.assignmentTitle, when(project)]
+      .filter(Boolean).join(' · ');
     return `<article class="work-card" data-slug="${esc(item.slug)}" data-id="${esc(project.id)}">
       <div class="work-thumb">
         ${cover ? visualEl(cover, project)
           : `<span class="work-media work-media-blank"><span>${esc(project.title)}</span></span>`}
         ${live ? '<span class="play-chip">Play</span>' : ''}
-        ${tag && item.courseName ? `<span class="work-tag" style="--c:${esc(item.color || 'var(--accent)')}">${esc(item.courseName)}</span>` : ''}
+        ${tag && item.tagLabel ? `<span class="work-tag" style="--c:${esc(item.tagColor || 'var(--accent)')}">${esc(item.tagLabel)}</span>` : ''}
       </div>
       <div class="work-body">
         <h5><button type="button" class="work-open">${esc(project.title)}</button></h5>
@@ -152,7 +197,8 @@ window.Work = (function () {
   }
 
   return {
-    load, forCourse, shuffled, when, card, url, esc, embedOf, coverOf, visualEl,
+    load, forCourse, assignmentsFor, assignmentTitle, shuffled, packRows, when, card, url, esc,
+    embedOf, coverOf, visualEl,
     failed: () => !!(manifest && manifest.failed)
   };
 })();

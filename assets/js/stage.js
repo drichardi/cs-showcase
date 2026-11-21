@@ -94,9 +94,9 @@ window.Stage = function (host) {
     const p = item.project, emb = W.embedOf(p), cover = W.coverOf(p);
     const links = (p.links || []).map(l =>
       `<a href="${esc(W.url(l.url))}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`);
-    const repo = window.CS_CONFIG.WORK_REPO;
-    if (emb && emb.hosted && repo && p.path) {
-      links.push(`<a href="${esc(repo.replace(/\/+$/, ''))}/tree/HEAD/${esc(p.path)}" target="_blank" rel="noopener">View code ↗</a>`);
+    // The sketch's code as published with it (works even though the repo is private).
+    if (emb && emb.hosted && p.code) {
+      links.push(`<a href="${esc(W.url(p.code))}" target="_blank" rel="noopener">View code ↗</a>`);
     } else if (emb && emb.codeUrl) {
       links.push(`<a href="${esc(emb.codeUrl)}" target="_blank" rel="noopener">View code ↗</a>`);
     }
@@ -117,7 +117,13 @@ window.Stage = function (host) {
       <div class="stage${emb ? ' is-playable' : ''}">
         <div class="stage-media"><div class="stage-frame">${inner}</div></div>
         <div class="stage-info">
-          ${item.courseName ? `<a class="stage-course" href="course.html?c=${encodeURIComponent(item.slug)}#p=${encodeURIComponent(p.id)}">${esc(item.courseName)} →</a>` : ''}
+          ${item.courseName
+            ? `<a class="stage-course" href="course.html?c=${encodeURIComponent(item.slug)}#${
+                item.assignmentTitle ? 'a=' + encodeURIComponent(item.assignment) + '&' : ''}p=${encodeURIComponent(p.id)}">${
+                esc([item.courseName, item.assignmentTitle].filter(Boolean).join(' · '))} →</a>`
+            : item.assignmentTitle
+              ? `<a class="stage-course" href="#a=${encodeURIComponent(item.assignment || 'other')}&p=${encodeURIComponent(p.id)}">${esc(item.assignmentTitle)}</a>`
+              : ''}
           <h3>${esc(p.title)}</h3>
           <span class="by">${esc([p.student || 'Student work', W.when(p)].filter(Boolean).join(' · '))}</span>
           ${p.blurb ? `<p class="stage-blurb">${esc(p.blurb)}</p>` : ''}

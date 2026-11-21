@@ -23,7 +23,15 @@
   document.body.style.setProperty('--c', col);
 
   const projects = window.Work.forCourse(c.slug);
-  const items = projects.map(p => ({ slug: c.slug, project: p }));
+  // Assignments are the folders projects sit in (intro-programming/tiling/...).
+  // A course whose projects aren't in assignment folders just gets one grid.
+  const assignments = window.Work.assignmentsFor(c.slug);
+  const grouped = assignments.some(a => a.id);
+  const aTitle = id => (assignments.find(a => a.id === (id || '')) || {}).title || '';
+  const items = projects.map(p => ({
+    slug: c.slug, project: p, assignment: p.assignment || '',
+    assignmentTitle: grouped ? aTitle(p.assignment) : '', tagLabel: aTitle(p.assignment), tagColor: col
+  }));
 
   /* Student work leads the page: one project large, the rest underneath.
      The course description follows it. */
@@ -38,7 +46,9 @@
     <div class="wrap course-work">
       ${items.length ? `
         <div class="stage-host" id="stage"></div>
-        ${items.length > 1 ? `
+        ${grouped ? `<nav class="assign-bar" id="assignBar" aria-label="Assignments"></nav>
+          <div id="courseMore"></div>`
+        : items.length > 1 ? `
           <p class="more-head mono">${items.length} projects from ${esc(c.short || c.name)}</p>
           <div class="gallery gallery-sm" id="courseGallery"></div>` : ''}`
       : window.Work.failed()
@@ -84,15 +94,79 @@
 
   if (!items.length) return;
 
-  /* #p=<project-id> opens that project first, so a student can share a link to
-     their own work. Otherwise the opening project is chosen at random. */
-  const stage = window.Stage(document.getElementById('stage'));
-  const want = decodeURIComponent((location.hash.match(/p=([^&]+)/) || [])[1] || '');
-  const first = items.find(it => String(it.project.id) === want)
-    || items[Math.floor(Math.random() * items.length)];
-  stage.show(first);
+  /* The hash holds what's open: #a=<assignment> filters to one assignment
+     (#a=other for projects outside an assignment folder), #p=<project> opens that
+     project first. Both can be shared, e.g. course.html?c=intro-programming#a=tiling */
+  const hashParams = () => Object.fromEntries(location.hash.replace(/^#/, '').split('&')
+    .filter(Boolean).map(kv => kv.split('=').map(decodeURIComponent)));
+  const aKey = id => id || 'other';
+  const selected = () => {
+    const a = hashParams().a;
+    return a === undefined ? null : assignments.find(x => aKey(x.id) === a) || null;
+  };
+  const remember = it => {
+    const sel = selected();
+    history.replaceState(null, '', '#' + [sel ? 'a=' + encodeURIComponent(aKey(sel.id)) : '',
+      'p=' + encodeURIComponent(it.project.id)].filter(Boolean).join('&'));
+  };
 
-  const galleryEl = document.getElementById('courseGallery');
-  if (galleryEl) window.Stage.gallery(galleryEl, items, stage, it =>
-    history.replaceState(null, '', '#p=' + encodeURIComponent(it.project.id)));
+  const stage = window.Stage(document.getElementById('stage'));
+  const byId = id => items.find(it => String(it.project.id) === id);
+  const pool = (selected() ? items.filter(it => it.assignment === selected().id) : items);
+  stage.show(byId(hashParams().p) || pool[Math.floor(Math.random() * pool.length)]);
+
+  if (!grouped) {
+    const galleryEl = document.getElementById('courseGallery');
+    if (galleryEl) window.Stage.gallery(galleryEl, items, stage, remember);
+    return;
+  }
+
+  /* All: a row per assignment, picked at random by the same rule as the home page
+     (ROW_SIZE / ROW_MIN in config.js); small assignments share a row, with each card
+     labelled. One assignment: every project in it, with its description. */
+  const size = window.CS_CONFIG.ROW_SIZE || 5, min = window.CS_CONFIG.ROW_MIN || 4;
+  const link = x => '#a=' + encodeURIComponent(aKey(x.id));
+
+  function renderMore() {
+    const sel = selected();
+    document.getElementById('assignBar').innerHTML =
+      `<a class="tag${sel ? '' : ' sel'}" href="#"${sel ? '' : ' aria-current="true"'}>All <span class="n">${items.length}</span></a>` +
+      assignments.map(x => `<a class="tag${sel === x ? ' sel' : ''}" href="${link(x)}"${sel === x ? ' aria-current="true"' : ''}>${
+        esc(x.title)} <span class="n">${x.count}</span></a>`).join('');
+
+    const el = document.getElementById('courseMore');
+    if (sel) {
+      const list = items.filter(it => it.assignment === sel.id);
+      window.Stage.gallery(el, list, stage, remember, () => `
+        <div class="assign-head">
+          <h3>${esc(sel.title)}</h3>
+          ${sel.blurb ? `<p>${esc(sel.blurb)}</p>` : ''}
+        </div>
+        <div class="gallery gallery-sm">${list.map(it => window.Work.card(it)).join('')}</div>`);
+      return;
+    }
+    const groups = assignments.map((x, order) => ({ x, order, items: items.filter(it => it.assignment === x.id) }));
+    const rows = window.Work.packRows(groups, size, min);
+    window.Stage.gallery(el, rows.flatMap(r => r.items), stage, remember, () => rows.map(r => {
+      const one = r.groups.length === 1, x = r.groups[0].x;
+      const head = one
+        ? `<a class="row-title" style="--c:${esc(col)}" href="${link(x)}">${esc(x.title)}</a>
+           ${x.blurb ? `<span class="row-blurb">${esc(x.blurb)}</span>` : ''}
+           ${r.total > r.items.length ? `<a class="row-more" href="${link(x)}">All ${r.total} →</a>` : ''}`
+        : `<span class="row-title is-shared">${r.groups.map(g =>
+            `<a style="--c:${esc(col)}" href="${link(g.x)}">${esc(g.x.title)}</a>`).join('')}</span>`;
+      return `<div class="work-row">
+        <div class="row-head">${head}</div>
+        <div class="row-cards" style="--row:${size}">${r.items.map(it => window.Work.card(it, { tag: !one })).join('')}</div>
+      </div>`;
+    }).join(''));
+  }
+  renderMore();
+
+  // Chips and row titles are plain links; the back button walks through filters.
+  addEventListener('hashchange', () => {
+    renderMore();
+    const want = byId(hashParams().p);
+    if (want && want !== stage.current) stage.show(want);
+  });
 })();
