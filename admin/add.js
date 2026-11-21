@@ -28,12 +28,39 @@ window.AdminAdd = (function () {
     };
   }
 
+  /* context.edit: a project from GET /project, to edit (or to set up, when its
+     folder has no project.yml yet). Otherwise it's a new project. */
   function open(host, context) {
     el = host; ctx = context;
     clearTimeout(pollTimer);
-    d = fresh(context.keep || {});
+    d = context.edit ? fromProject(context.edit) : fresh(context.keep || {});
     render();
     el.scrollIntoView({ block: 'start' });
+    if (d.edit && d.edit.cover) {
+      ctx.api.file(`${d.edit.path}/${d.edit.cover}`).then(url => { d.currentCoverUrl = url; renderCover(); renderCard(); }).catch(() => {});
+    }
+  }
+
+  function fromProject(p) {
+    return Object.assign(fresh(), {
+      edit: p, course: p.course, assignment: p.assignment, kind: p.kind, folder: p.folder,
+      semester: p.meta.semester || (p.ymlSha ? '' : fresh().semester), year: p.meta.year || (p.ymlSha ? '' : fresh().year),
+      title: p.meta.title, students: p.meta.students.length ? p.meta.students.slice() : guessStudents(p),
+      blurb: p.meta.blurb, instructions: p.meta.instructions.join('\n'), links: p.meta.links.map(l => ({ ...l })),
+      show: p.meta.show, consent: p.meta.show,           // already shown: consent was given when it went up
+      link: p.embed ? { url: p.embed.src, size: p.embed.size } : { url: '', size: '' },
+      coverMode: p.cover ? 'keep' : p.kind === 'sketch' ? 'auto' : 'upload', replacing: false
+    });
+  }
+
+  /* A folder named in the repo's pattern ("anna-f-tiling-f26") suggests its students. */
+  function guessStudents(p) {
+    const who = p.assignment ? p.folder.split(`-${p.assignment}`)[0] : '';
+    const t = who.split('-');
+    if (!who || t.length % 2 || t.some((w, i) => (i % 2 ? w.length !== 1 : w.length < 2))) return [];
+    const names = [];
+    for (let i = 0; i < t.length; i += 2) names.push(`${t[i][0].toUpperCase()}${t[i].slice(1)} ${t[i + 1].toUpperCase()}.`);
+    return names;
   }
 
   const courseName = slug => (ctx.courses.find(c => c.slug === slug) || {}).name || slug;
@@ -42,16 +69,22 @@ window.AdminAdd = (function () {
   /* ---------- page ---------- */
   function render() {
     const testMode = ctx.data.branch && ctx.data.branch !== 'main';
+    const e = d.edit;
+    const heading = !e ? 'Add a project' : e.ymlSha && !e.problem ? `Edit: ${esc(e.meta.title || e.folder)}` : `Set up: ${esc(e.folder)}`;
     el.innerHTML = `
       <div class="add-head">
         <button class="btn btn-ghost" id="back">← Projects</button>
-        <h2>Add a project</h2>
+        <h2>${heading}</h2>
       </div>
       ${testMode ? `<p class="add-test">Test mode: saves go to the <b>${esc(ctx.data.branch)}</b> branch, not the site.</p>` : ''}
+      ${e && e.problem ? `<p class="add-test">${esc(e.problem)}. Saving writes a fresh project.yml from this form.</p>` : ''}
+      ${e && !e.ymlSha ? `<p class="add-test">This sketch is in the repo but has no project.yml yet, so it isn't on the site. Fill this in to set it up.</p>` : ''}
 
       <section class="add-sec" id="secWhere">
         <h3><span>1</span> Where it goes</h3>
-        <div class="add-row">
+        ${e ? `<p class="add-where">${esc(courseName(e.course))}${e.assignment ? ` · ${esc(((assignmentsFor(e.course).find(a => a.id === e.assignment)) || {}).title || e.assignment)}` : ''}
+          <span class="hint">in <code>${esc(e.path)}</code></span></p>` : ''}
+        <div class="add-row"${e ? ' hidden' : ''}>
           <label>Course
             <select id="course"><option value="">Pick a course…</option>${ctx.courses.map(c =>
               `<option value="${esc(c.slug)}"${d.course === c.slug ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select>
@@ -59,9 +92,11 @@ window.AdminAdd = (function () {
           <label>Assignment
             <select id="assignment"${d.course ? '' : ' disabled'}>${assignmentOptions()}</select>
           </label>
+        </div>
+        <div class="add-row">
           <label>Term
             <span class="add-term">
-              <select id="semester">${['spring', 'summer', 'fall'].map(s =>
+              <select id="semester"><option value="">No term</option>${['spring', 'summer', 'fall'].map(s =>
                 `<option value="${s}"${d.semester === s ? ' selected' : ''}>${s[0].toUpperCase() + s.slice(1)}</option>`).join('')}</select>
               <input id="year" type="number" min="2000" max="2100" value="${esc(d.year)}" aria-label="Year">
             </span>
@@ -76,10 +111,10 @@ window.AdminAdd = (function () {
 
       <section class="add-sec" id="secWork">
         <h3><span>2</span> The work</h3>
-        <div class="add-kinds" role="radiogroup" aria-label="What kind of work">
+        ${e ? '' : `<div class="add-kinds" role="radiogroup" aria-label="What kind of work">
           ${[['sketch', 'p5 sketch'], ['link', 'Link'], ['media', 'Pictures or video']].map(([k, label]) =>
             `<button type="button" role="radio" data-kind="${k}" aria-checked="${d.kind === k}">${label}</button>`).join('')}
-        </div>
+        </div>`}
         <div id="workBody"></div>
       </section>
 
@@ -109,17 +144,17 @@ window.AdminAdd = (function () {
         <label class="add-check add-consent" id="consentRow"${d.show ? '' : ' hidden'}>
           <input type="checkbox" id="consent"${d.consent ? ' checked' : ''}> The student(s) agreed to have this shown publicly</label>
         <p class="hint">Left unticked, it's saved to the repo but stays off the site.</p>
-        <details class="add-adv"><summary>Advanced</summary>
+        ${e ? '' : `<details class="add-adv"><summary>Advanced</summary>
           <label>Folder name <input id="folder" value="${esc(d.folder)}" pattern="[a-z0-9-]+"></label>
           <p class="hint" id="folderPath"></p>
-        </details>
+        </details>`}
         <div class="add-preview">
           <p class="mono">How it'll look in its row</p>
           <div id="cardPreview"></div>
         </div>
         <div class="add-go">
           <ul id="missing" class="add-missing"></ul>
-          <button class="btn btn-primary" id="publish">Publish</button>
+          <button class="btn btn-primary" id="publish">${e ? 'Save changes' : 'Publish'}</button>
         </div>
         <div id="saveStatus" aria-live="polite"></div>
       </section>`;
@@ -169,7 +204,7 @@ window.AdminAdd = (function () {
     $('instructions').addEventListener('input', e => { d.instructions = e.target.value; updateDerived(); });
     $('show').addEventListener('change', e => { d.show = e.target.checked; $('consentRow').hidden = !d.show; updateDerived(); });
     $('consent').addEventListener('change', e => { d.consent = e.target.checked; updateDerived(); });
-    $('folder').addEventListener('input', e => { d.folder = e.target.value.trim(); d.folderEdited = !!d.folder; updateDerived(); });
+    if ($('folder')) $('folder').addEventListener('input', e => { d.folder = e.target.value.trim(); d.folderEdited = !!d.folder; updateDerived(); });
     $('publish').addEventListener('click', publish);
   }
 
@@ -217,6 +252,29 @@ window.AdminAdd = (function () {
   /* ---------- the work ---------- */
   function renderWork() {
     const body = $('workBody');
+    // Editing: show what's there now; replacing it brings back the upload area.
+    if (d.edit && !d.replacing && d.kind !== 'link') {
+      const files = d.edit.files.filter(f => !/^project\.(ya?ml|json)$/i.test(f.path));
+      const bytes = files.reduce((n, f) => n + (f.size || 0), 0);
+      const live = d.edit.meta.show ? `../course.html?c=${encodeURIComponent(d.edit.course)}#${
+        d.edit.assignment ? 'a=' + encodeURIComponent(d.edit.assignment) + '&' : ''}p=${encodeURIComponent(d.edit.folder)}` : '';
+      body.innerHTML = `<div class="add-loaded">
+        <p><b>${d.kind === 'sketch' ? 'Sketch' : 'Pictures'} in the repo</b> · ${files.length} files · ${mb(bytes)}
+          ${live ? `· <a href="${live}" target="_blank" rel="noopener">See it on the site ↗</a>` : ''}</p>
+        <p class="hint">${files.slice(0, 8).map(f => esc(f.path)).join(', ')}${files.length > 8 ? `, and ${files.length - 8} more` : ''}</p>
+        <p><button type="button" class="btn btn-ghost add-small" id="replaceWork">Replace with ${d.kind === 'sketch' ? 'a new version of the sketch' : 'new pictures'}…</button></p>
+      </div>`;
+      $('replaceWork').addEventListener('click', () => { d.replacing = true; renderWork(); updateDerived(); });
+      return;
+    }
+    renderUpload(body);
+    if (d.edit && d.replacing && d.kind !== 'link') {
+      body.insertAdjacentHTML('beforeend', '<p><button type="button" class="btn btn-ghost add-small" id="keepWork">Keep the files that are there now</button></p>');
+      $('keepWork').addEventListener('click', () => { d.replacing = false; d.files = []; d.pictures = []; renderWork(); updateDerived(); });
+    }
+  }
+
+  function renderUpload(body) {
     if (d.kind === 'sketch') {
       body.innerHTML = d.files.length ? `
         <div class="add-loaded">
@@ -437,12 +495,16 @@ window.AdminAdd = (function () {
   /* ---------- cover ---------- */
   function renderCover() {
     const body = $('coverBody');
-    if (d.kind === 'media') { body.innerHTML = `<p class="hint">Cover: the picture you picked above.</p>`; return; }
-    const auto = d.kind === 'sketch';
+    if (d.kind === 'media' && (!d.edit || d.replacing)) { body.innerHTML = `<p class="hint">Cover: the picture you picked above.</p>`; return; }
+    const auto = d.kind === 'sketch', has = d.edit && d.edit.cover;
     if (!auto && d.coverMode === 'auto') d.coverMode = 'upload';
+    if (!has && d.coverMode === 'keep') d.coverMode = auto ? 'auto' : 'upload';
     body.innerHTML = `<p class="add-label">Cover <span class="opt">the picture in the rows</span></p>
+      ${has ? `<label class="add-check"><input type="radio" name="coverMode" value="keep"${d.coverMode === 'keep' ? ' checked' : ''}>
+        Keep this one ${d.currentCoverUrl ? `<img class="add-coverthumb" src="${d.currentCoverUrl}" alt="">` : ''}
+        <span class="hint">${esc(d.edit.cover)}</span></label>` : ''}
       ${auto ? `<label class="add-check"><input type="radio" name="coverMode" value="auto"${d.coverMode === 'auto' ? ' checked' : ''}>
-        Automatic: a screenshot of the sketch, made when it's published</label>` : ''}
+        ${has ? 'Remove it: a new screenshot of the sketch is made when it\'s saved' : 'Automatic: a screenshot of the sketch, made when it\'s published'}</label>` : ''}
       <label class="add-check"><input type="radio" name="coverMode" value="upload"${d.coverMode === 'upload' ? ' checked' : ''}>
         ${auto ? 'Upload a picture instead' : 'Upload a picture (recommended: a link can\'t be screenshotted automatically)'}</label>
       ${d.coverMode === 'upload' ? `<p><label class="btn btn-ghost add-small">${d.coverFile ? 'Replace picture' : 'Choose a picture'}
@@ -472,7 +534,7 @@ window.AdminAdd = (function () {
   function updateDerived() {
     if (!d.folderEdited) { d.folder = autoFolder(); if ($('folder')) $('folder').value = d.folder; }
     const dir = [d.course, assignmentId()].filter(Boolean).join('/');
-    $('folderPath').textContent = d.course ? `Saved in the repo at ${dir}/${d.folder || '…'} (a number is added if that's taken)` : '';
+    if ($('folderPath')) $('folderPath').textContent = d.course ? `Saved in the repo at ${dir}/${d.folder || '…'} (a number is added if that's taken)` : '';
     $('blurbCount').textContent = d.blurb ? `${d.blurb.length} / 400` : '';
     renderCard();
     const missing = problems();
@@ -482,13 +544,17 @@ window.AdminAdd = (function () {
 
   function problems() {
     const p = [];
+    const uploading = !d.edit || d.replacing;      // editing keeps the files unless replaced
     if (!d.course) p.push('Pick a course');
     if (d.assignment === '__new' && !slugify(d.newAssignment.title)) p.push('Name the new assignment');
-    if (d.kind === 'sketch' && !d.files.length) p.push('Add the sketch');
-    if (d.kind === 'sketch' && totalBytes() > MAX_BYTES) p.push('Make the sketch smaller than 25 MB');
+    if (uploading && d.kind === 'sketch' && !d.files.length) p.push(d.edit ? 'Add the new version of the sketch, or keep the files that are there' : 'Add the sketch');
+    if (uploading && d.kind === 'sketch' && totalBytes() > MAX_BYTES) p.push('Make the sketch smaller than 25 MB');
     if (d.kind === 'link' && !embedFor(d.link.url)) p.push('Add the link');
     if (d.kind === 'link' && d.link.size && !/^\d+x\d+$/.test(d.link.size)) p.push('Write the canvas size like 400x400');
-    if (d.kind === 'media' && !d.pictures.length) p.push('Add a picture or video');
+    if (uploading && d.kind === 'media' && !d.pictures.length) p.push(d.edit ? 'Add the new pictures, or keep the ones that are there' : 'Add a picture or video');
+    if (d.edit && d.edit.cover && d.coverMode === 'upload' && !d.coverFile && !(d.kind === 'media' && d.replacing)) {
+      p.push('Choose the new cover picture, or keep the current cover');
+    }
     if (!d.title.trim()) p.push('Add a title');
     if (!d.students.length) p.push('Add the student(s)');
     if (d.links.some(l => (l.label || l.url) && (!l.label.trim() || !/^https?:\/\/\S+$/i.test(l.url.trim())))) p.push('Finish or remove the half-filled link');
@@ -498,8 +564,9 @@ window.AdminAdd = (function () {
   }
 
   function renderCard() {
-    const cover = d.kind === 'media' ? (d.pictures.find(p => p.path === d.mediaCover) || {}).url
-      : d.coverMode === 'upload' && d.coverFile ? d.coverFile.url : '';
+    const cover = d.kind === 'media' && (!d.edit || d.replacing) ? (d.pictures.find(p => p.path === d.mediaCover) || {}).url
+      : d.coverMode === 'upload' && d.coverFile ? d.coverFile.url
+      : (d.coverMode === 'keep' || d.kind === 'media') && d.currentCoverUrl ? d.currentCoverUrl : '';
     const term = [d.semester ? d.semester[0].toUpperCase() + d.semester.slice(1) : '', d.year].filter(Boolean).join(' ');
     const by = [joinNames(d.students) || 'Student names', assignmentTitle(), term].filter(Boolean).join(' · ');
     const playable = d.kind !== 'media';
@@ -523,7 +590,7 @@ window.AdminAdd = (function () {
     renderSave(); updateDerived();
     try {
       const body = await payload();
-      const res = await ctx.api.api('/projects', { method: 'POST', body: JSON.stringify(body) });
+      const res = await ctx.api.api(d.edit ? '/project' : '/projects', { method: 'POST', body: JSON.stringify(body) });
       d.save = { state: res.published ? 'publishing' : 'test-branch', res };
       renderSave();
       if (res.published) poll(res, Date.now());
@@ -534,6 +601,7 @@ window.AdminAdd = (function () {
   }
 
   async function payload() {
+    if (d.edit) return editPayload();
     const body = {
       course: d.course,
       assignment: d.assignment === '__new' ? { title: d.newAssignment.title.trim(), blurb: d.newAssignment.blurb.trim() }
@@ -562,6 +630,35 @@ window.AdminAdd = (function () {
     return body;
   }
 
+  /* An edit: the details always; new files, cover or link only when changed. ymlSha
+     lets the server refuse the save if someone changed the project meanwhile. */
+  async function editPayload() {
+    const body = {
+      path: d.edit.path, ymlSha: d.edit.ymlSha,
+      meta: {
+        title: d.title.trim(), students: d.students, year: d.year || null, semester: d.semester,
+        blurb: d.blurb.trim(), instructions: d.instructions.split('\n').map(s => s.trim()).filter(Boolean),
+        links: d.links.filter(l => l.label.trim() || l.url.trim()).map(l => ({ label: l.label.trim(), url: l.url.trim() })),
+        show: d.show, consent: d.consent
+      }
+    };
+    if (d.kind === 'link') body.embed = { src: embedFor(d.link.url).src, size: d.link.size };
+    if (d.replacing && d.kind === 'sketch') body.replace = d.files.map(f => ({ path: f.path, data: base64(f.bytes) }));
+    if (d.replacing && d.kind === 'media') {
+      body.replace = [];
+      for (const p of d.pictures) {
+        const data = base64(new Uint8Array(await p.file.arrayBuffer()));
+        if (p.path === d.mediaCover) body.cover = { name: p.path, data };
+        else body.replace.push({ path: p.path, data });
+      }
+    } else if (d.coverMode === 'upload' && d.coverFile) {
+      body.cover = { name: d.coverFile.file.name, data: base64(new Uint8Array(await d.coverFile.file.arrayBuffer())) };
+    } else if (d.coverMode === 'auto' && d.edit.cover) {
+      body.removeCover = true;
+    }
+    return body;
+  }
+
   /* After a save on the live branch, the work repo's Action publishes it (about a minute). */
   function poll(res, started) {
     clearTimeout(pollTimer);
@@ -582,8 +679,8 @@ window.AdminAdd = (function () {
     const link = r.show && r.path ? `../course.html?c=${encodeURIComponent(d.course)}#${
       assignmentId() ? 'a=' + encodeURIComponent(assignmentId()) + '&' : ''}p=${encodeURIComponent(r.folder)}` : '';
     const after = `<p class="add-after">
-      <button type="button" class="btn btn-primary" id="another">Add another to ${esc(assignmentTitle() || courseName(d.course))}</button>
-      <button type="button" class="btn btn-ghost" id="done">Back to projects</button></p>`;
+      ${d.edit ? '' : `<button type="button" class="btn btn-primary" id="another">Add another to ${esc(assignmentTitle() || courseName(d.course))}</button>`}
+      <button type="button" class="btn ${d.edit ? 'btn-primary' : 'btn-ghost'}" id="done">Back to projects</button></p>`;
     box.innerHTML = {
       saving: `<p class="add-saving">Saving to the repo…</p>`,
       'test-branch': `<div class="add-ok"><p><b>Saved to the test branch.</b> It's in <code>${esc(r.path)}</code> on

@@ -9,7 +9,7 @@ export const LIMITS = { totalBytes: 25 * 1024 * 1024, binaryFiles: 40, files: 30
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SEMESTERS = ['spring', 'summer', 'fall'];
 const JUNK = /(^|\/)(__MACOSX|\.DS_Store|Thumbs\.db|desktop\.ini)(\/|$)/i;
-const PICTURE = /\.(png|jpe?g|webp|gif|svg|avif|mp4|webm|mov)$/i;
+export const PICTURE = /\.(png|jpe?g|webp|gif|svg|avif|mp4|webm|mov)$/i;
 const SEGMENT = /^[\w\-. ()+@,]+$/;
 
 /* ---------- names ---------- */
@@ -63,7 +63,25 @@ export function validate(body) {
     }
   }
 
-  const m = body.meta || {};
+  const meta = validateMeta(body.meta);
+  const kind = str(body.kind);
+  if (!['sketch', 'link', 'media'].includes(kind)) throw bad('kind', 'Add the sketch, a link, or pictures.');
+  const embed = kind === 'link' ? validateEmbed(body.embed) : null;
+
+  const files = cleanFiles(body.files);
+  if (kind === 'sketch' && !files.some(f => f.path === 'index.html')) throw bad('files', 'The sketch needs an index.html.');
+  if (kind === 'media' && !files.some(f => PICTURE.test(f.path))) throw bad('files', 'Add at least one picture or video.');
+  const cover = validateCover(body.cover);
+
+  const folder = str(body.folder);
+  if (folder && !SLUG.test(folder)) throw bad('folder', 'The folder name can only use lowercase letters, numbers and dashes.');
+
+  return { course, assignment, kind, embed, files, cover, folder, meta };
+}
+
+/* The details, the same for adding and editing. */
+export function validateMeta(m) {
+  m = m || {};
   const title = str(m.title);
   if (!title) throw bad('title', 'Add a title.');
   if (title.length > 100) throw bad('title', 'Keep the title under 100 characters.');
@@ -87,39 +105,25 @@ export function validate(body) {
   }
   const show = m.show === true;
   if (show && m.consent !== true) throw bad('consent', 'Tick the box confirming the students agreed to have this shown, or leave it hidden.');
-
-  const kind = str(body.kind);
-  if (!['sketch', 'link', 'media'].includes(kind)) throw bad('kind', 'Add the sketch, a link, or pictures.');
-  let embed = null;
-  if (kind === 'link') {
-    const src = str(body.embed && body.embed.src);
-    if (!/^https:\/\/[^\s]+$/i.test(src) || src.length > 500) throw bad('embed', 'The link must be a full https:// address.');
-    const size = str(body.embed.size);
-    if (size && !/^\d{2,5}x\d{2,5}$/.test(size)) throw bad('embed', 'Canvas size should look like 400x400.');
-    embed = { src, size };
-  }
-
-  const files = cleanFiles(body.files);
-  if (kind === 'sketch' && !files.some(f => f.path === 'index.html')) throw bad('files', 'The sketch needs an index.html.');
-  if (kind === 'media' && !files.some(f => PICTURE.test(f.path))) throw bad('files', 'Add at least one picture or video.');
-
-  let cover = null;
-  if (body.cover && body.cover.data) {
-    const ext = (str(body.cover.name).match(/\.([a-z0-9]+)$/i) || [])[1];
-    if (!ext || !PICTURE.test(`.${ext}`)) throw bad('cover', 'The cover should be a picture (PNG, JPG, GIF or WebP) or a video.');
-    cover = { path: `cover.${ext.toLowerCase()}`, data: b64(body.cover.data, 'cover') };
-  }
-
-  const folder = str(body.folder);
-  if (folder && !SLUG.test(folder)) throw bad('folder', 'The folder name can only use lowercase letters, numbers and dashes.');
-
-  return {
-    course, assignment, kind, embed, files, cover, folder,
-    meta: { title, students, year, semester, blurb, instructions, links, show }
-  };
+  return { title, students, year, semester, blurb, instructions, links, show };
 }
 
-function cleanFiles(list) {
+export function validateEmbed(e) {
+  const src = str(e && e.src);
+  if (!/^https:\/\/[^\s]+$/i.test(src) || src.length > 500) throw bad('embed', 'The link must be a full https:// address.');
+  const size = str(e.size);
+  if (size && !/^\d{2,5}x\d{2,5}$/.test(size)) throw bad('embed', 'Canvas size should look like 400x400.');
+  return { src, size };
+}
+
+export function validateCover(c) {
+  if (!c || !c.data) return null;
+  const ext = (str(c.name).match(/\.([a-z0-9]+)$/i) || [])[1];
+  if (!ext || !PICTURE.test(`.${ext}`)) throw bad('cover', 'The cover should be a picture (PNG, JPG, GIF or WebP) or a video.');
+  return { path: `cover.${ext.toLowerCase()}`, data: b64(c.data, 'cover') };
+}
+
+export function cleanFiles(list) {
   const out = [], seen = new Set();
   let total = 0, binaries = 0;
   for (const f of Array.isArray(list) ? list : []) {
@@ -149,7 +153,7 @@ function b64(value, what) {
 }
 
 /* Text files go straight into the commit; anything that isn't valid UTF-8 is binary. */
-function isText(path, data) {
+export function isText(path, data) {
   if (PICTURE.test(path)) return false;
   if (data.text !== undefined) return data.text !== null;
   try {
@@ -233,25 +237,32 @@ export async function createProject(request, env, user) {
     `Added with the CS teacher dashboard by ${user.name} <${user.email}>.` +
     (v.meta.show ? ' Shown on the site; the teacher confirmed the students agreed.' : ' Hidden for now.');
 
-  // Commit on top of the branch. If someone else saved in the meantime, redo it on
-  // top of their change (this only adds new files, so nothing of theirs is lost).
-  let parent = head, commit;
+  // Adding only creates new files, so a colleague's save in the meantime can't clash.
+  const commit = await saveCommit(env, { parent: head, entries, message, user });
+  return { path, folder, commit: commit.sha, branch, published: branch === 'main', show: v.meta.show };
+}
+
+/* One commit on the branch, recorded under the teacher. If someone else saved in the
+   meantime, it's redone on top of their change; `recheck(newHead)` can stop that
+   (by throwing) when their change touched the same project. */
+export async function saveCommit(env, { parent, entries, message, user, recheck }) {
+  const write = { access: 'write' }, ref = `/git/refs/heads/${encodeURIComponent(env.GITHUB_BRANCH)}`;
   for (let attempt = 1; ; attempt++) {
     const parentCommit = await gh(env, `/git/commits/${parent}`, write);
     const tree = await gh(env, '/git/trees', { ...write, method: 'POST', body: { base_tree: parentCommit.tree.sha, tree: entries } });
-    commit = await gh(env, '/git/commits', { ...write, method: 'POST', body: {
+    const commit = await gh(env, '/git/commits', { ...write, method: 'POST', body: {
       message, tree: tree.sha, parents: [parent],
       author: { name: user.name, email: user.email, date: new Date().toISOString() }
     } });
     try {
-      await gh(env, `/git/refs/heads/${encodeURIComponent(branch)}`, { ...write, method: 'PATCH', body: { sha: commit.sha, force: false } });
-      break;
+      await gh(env, ref, { ...write, method: 'PATCH', body: { sha: commit.sha, force: false } });
+      return commit;
     } catch (e) {
       if (e.githubStatus !== 422 || attempt >= 3) throw e;
-      parent = (await gh(env, `/git/ref/heads/${encodeURIComponent(branch)}`, write)).object.sha;
+      parent = (await gh(env, `/git/ref/heads/${encodeURIComponent(env.GITHUB_BRANCH)}`, write)).object.sha;
+      if (recheck) await recheck(parent);
     }
   }
-  return { path, folder, commit: commit.sha, branch, published: branch === 'main', show: v.meta.show };
 }
 
 /* Names in a repo folder at a commit, or null if the folder doesn't exist. */

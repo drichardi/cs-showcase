@@ -140,6 +140,12 @@ teacher list; then:
   "Try it" steps; choose a cover; tick "Show it on the site" (which needs the consent box).
   Publishing saves it to the repo as one change under the teacher's name and shows when
   it's live, about a minute later.
+- **Edit:** every card has Edit (Set up for a sketch folder with no `project.yml`, Fix for
+  one with a mistake) and Show on site / Hide. Editing changes the details, the cover, or
+  the files (upload a new version of the sketch); anything else in `project.yml` is kept.
+  If a colleague changed the same project in the meantime, the save stops and says so.
+- **Assignments:** filter to one assignment to see and edit its name, description and
+  order.
 
 The dashboard's server program is in `admin-api/` (a Cloudflare Worker; its README has
 the setup, the secrets and how to test).

@@ -128,3 +128,22 @@ div.add-err{padding:10px 14px;border-left:3px solid var(--l4);background:var(--b
 .add-saving::after{content:"";display:inline-block;width:10px;height:10px;margin-left:8px;border:2px solid var(--ink-3);
   border-right-color:transparent;border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle}
 @keyframes spin{to{transform:rotate(1turn)}}
+
+/* ---------- editing (step 4) ---------- */
+.proj-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px}
+.proj-actions .btn{padding:5px 12px;font-size:.78rem}
+.proj-actions .btn:disabled{opacity:.5;cursor:wait}
+.proj-busy{font-size:.76rem;color:var(--ink-2)}
+.proj-assign{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-start;margin:0 0 14px;padding:14px 16px;
+  background:var(--popover,var(--surface));border:1px solid var(--rule);border-left:3px solid var(--accent);border-radius:var(--radius)}
+.proj-assign > div{flex:1 1 300px}
+.proj-assign .mono{color:var(--ink-3);margin:0 0 4px}
+.proj-assign h3{font-size:1.15rem}
+.proj-assign p{margin:4px 0 0;color:var(--ink-2);font-size:.9rem}
+.proj-assign label{display:flex;flex-direction:column;gap:4px;font-size:.84rem;font-weight:600;flex:1 1 260px}
+.proj-assign .opt{font-weight:400;color:var(--ink-3);font-size:.78rem}
+.proj-assign input,.proj-assign textarea{font:inherit;font-weight:400;font-size:.9rem;padding:7px 9px;border:1px solid var(--rule-2);border-radius:3px;background:var(--paper);color:var(--ink)}
+.proj-assign .proj-order{flex:0 0 140px}
+.proj-assign-go{flex:1 1 100%;display:flex;gap:8px;align-items:center}
+.add-where{margin:0 0 10px;font-size:.95rem}
+.add-where .hint{display:block}

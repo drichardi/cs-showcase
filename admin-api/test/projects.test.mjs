@@ -103,7 +103,9 @@ test('a project.yml with a mistake is reported, not fatal', () => {
 
 test('assignments get their title from assignment.yml or the folder', () => {
   const intro = assignments['intro-programming'];
-  assert.deepEqual(intro.find(a => a.id === 'tiling'), { id: 'tiling', title: 'Tiling Patterns', blurb: 'Repeat a tile.', order: 2 });
+  const tiling = intro.find(a => a.id === 'tiling');
+  assert.deepEqual({ ...tiling, ymlSha: undefined }, { id: 'tiling', title: 'Tiling Patterns', blurb: 'Repeat a tile.', order: 2, ymlSha: undefined });
+  assert.ok(tiling.ymlSha, 'the assignment.yml version, for safe editing');
   assert.equal(intro.find(a => a.id === 'a').title, 'A');
 });
 

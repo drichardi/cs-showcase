@@ -89,6 +89,7 @@ window.AdminProjects = (function () {
         </select>
         <label class="proj-check"><input type="checkbox" id="attention"${f.attention ? ' checked' : ''}> Needs attention</label>
       </div>
+      ${f.course && f.assignment ? assignmentBar() : ''}
       ${list.length ? `<div class="proj-grid">${list.map(card).join('')}</div>`
         : `<div class="empty-work">No projects match. <a href="#" id="clear">Clear the filters</a></div>`}`;
 
@@ -105,6 +106,9 @@ window.AdminProjects = (function () {
       keep: f.course ? { course: f.course, assignment: f.assignment } : {},
       onClose: changed => changed ? mount(el, mount.api) : render()
     }));
+    const grid = el.querySelector('.proj-grid');
+    if (grid) grid.addEventListener('click', onCardAction);
+    bindAssignment();
     loadThumbs();
   }
 
@@ -136,8 +140,94 @@ window.AdminProjects = (function () {
         ${p.issues.length ? `<ul class="proj-issues">${p.issues.map(i => `<li>${esc(i)}</li>`).join('')}</ul>` : ''}
         <p class="proj-path" title="Folder in the repo">${esc(p.path)}</p>
         ${live}
+        <div class="proj-actions" data-path="${esc(p.path)}">
+          <button type="button" class="btn btn-ghost" data-act="edit">${
+            p.status === 'not-set-up' ? 'Set up' : p.status === 'broken' ? 'Fix' : 'Edit'}</button>
+          ${p.status === 'shown' ? '<button type="button" class="btn btn-ghost" data-act="hide">Hide</button>'
+            : p.status === 'hidden' ? '<button type="button" class="btn btn-ghost" data-act="show">Show on site</button>' : ''}
+          <span class="proj-busy" aria-live="polite"></span>
+        </div>
       </div>
     </article>`;
+  }
+
+  /* ---------- the selected assignment: its name and description, editable ---------- */
+  const currentAssignment = () => (data.assignments[f.course] || []).find(a => a.id === f.assignment);
+  function assignmentBar(editing = false) {
+    const a = currentAssignment();
+    if (!a) return '';
+    return `<div class="proj-assign" id="assignBar">${editing ? `
+      <label>Name <input id="aTitle" maxlength="60" value="${esc(a.title)}"></label>
+      <label>Description <span class="opt">shown on the course page above its projects</span>
+        <textarea id="aBlurb" rows="2" maxlength="300">${esc(a.blurb)}</textarea></label>
+      <label class="proj-order">Order <span class="opt">optional: 1 shows first</span>
+        <input id="aOrder" type="number" min="0" max="99" value="${a.order ?? ''}"></label>
+      <p class="proj-assign-go"><button class="btn btn-primary" id="aSave">Save assignment</button>
+        <button class="btn btn-ghost" id="aCancel">Cancel</button> <span id="aMsg" aria-live="polite"></span></p>` : `
+      <div><p class="mono">Assignment · <code>${esc(f.course)}/${esc(a.id)}</code></p>
+        <h3>${esc(a.title)}</h3><p>${a.blurb ? esc(a.blurb) : '<i>No description yet.</i>'}</p></div>
+      <button class="btn btn-ghost" id="aEdit">Edit assignment</button>`}</div>`;
+  }
+  function bindAssignment() {
+    const bar = el.querySelector('#assignBar');
+    if (!bar) return;
+    const edit = bar.querySelector('#aEdit');
+    if (edit) edit.addEventListener('click', () => { bar.outerHTML = assignmentBar(true); bindAssignment(); el.querySelector('#aTitle').focus(); });
+    const cancel = bar.querySelector('#aCancel');
+    if (cancel) cancel.addEventListener('click', () => { bar.outerHTML = assignmentBar(false); bindAssignment(); });
+    const save = bar.querySelector('#aSave');
+    if (save) save.addEventListener('click', async () => {
+      const a = currentAssignment(), msg = bar.querySelector('#aMsg');
+      save.disabled = true; msg.textContent = 'Saving…';
+      try {
+        const res = await mount.api.api('/assignment', { method: 'POST', body: JSON.stringify({
+          course: f.course, id: a.id, ymlSha: a.ymlSha ?? null,
+          title: bar.querySelector('#aTitle').value, blurb: bar.querySelector('#aBlurb').value, order: bar.querySelector('#aOrder').value
+        }) });
+        msg.textContent = res.published ? 'Saved. The site updates in about a minute.' : 'Saved to the test branch.';
+        setTimeout(() => mount(el, mount.api), 900);
+      } catch (e) {
+        msg.textContent = e.message || 'Couldn\'t save. Try again.';
+        save.disabled = false;
+      }
+    });
+  }
+
+  /* Card buttons: open the edit page, or flip Show/Hide in one step. */
+  async function onCardAction(e) {
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    const box = b.closest('.proj-actions'), busy = box.querySelector('.proj-busy');
+    const p = data.projects.find(x => x.path === box.dataset.path);
+    const say = t => { busy.textContent = t; };
+    box.querySelectorAll('button').forEach(x => { x.disabled = true; });
+    try {
+      if (b.dataset.act === 'edit') {
+        say('Opening…');
+        const project = await mount.api.api('/project?path=' + encodeURIComponent(p.path));
+        window.AdminAdd.open(el, { api: mount.api, data, courses, edit: project, onClose: changed => changed ? mount(el, mount.api) : render() });
+        return;
+      }
+      const show = b.dataset.act === 'show';
+      const ok = show
+        ? confirm(`Show "${p.title}" on the site?\n\nOnly if the student(s) agreed to have it shown publicly.`)
+        : confirm(`Hide "${p.title}" from the site?\n\nIt stays in the repo, and you can show it again any time.`);
+      if (!ok) { box.querySelectorAll('button').forEach(x => { x.disabled = false; }); return; }
+      say('Saving…');
+      const project = await mount.api.api('/project?path=' + encodeURIComponent(p.path));
+      const res = await mount.api.api('/project', { method: 'POST', body: JSON.stringify({
+        path: project.path, ymlSha: project.ymlSha,
+        meta: { ...project.meta, show, consent: show },
+        ...(project.kind === 'link' && project.embed ? { embed: project.embed } : {})
+      }) });
+      p.status = show ? 'shown' : 'hidden';
+      render();
+      const card = el.querySelector(`.proj-actions[data-path="${CSS.escape(p.path)}"] .proj-busy`);
+      if (card) card.textContent = res.published ? (show ? 'Saved. On the site in about a minute.' : 'Saved. Off the site in about a minute.') : 'Saved to the test branch.';
+    } catch (err) {
+      say(err.message || 'Couldn\'t save. Try again.');
+      box.querySelectorAll('button').forEach(x => { x.disabled = false; });
+    }
   }
 
   /* Covers load as they scroll into view: each one is a request to the server. */

@@ -13,6 +13,9 @@ out 8-hour dashboard sessions, and reads (and later saves) projects in the priva
 | `GET /file?path=` | A cover picture or video from the repo, for thumbnails |
 | `POST /projects` | Add a project: details and files in, checked, then saved as one commit under the teacher's name, with `project.yml` (and `assignment.yml` for a new assignment) written for them |
 | `GET /status?commit=` | Whether that save is live yet (the work repo's Action run for it) |
+| `GET /project?path=` | One project, for the edit form (details, files, cover, and its `project.yml` version) |
+| `POST /project` | Save edits: details, Show/Hide, replaced files, a new or removed cover; or set up a sketch folder that has no `project.yml`. Keeps the rest of `project.yml` (comments included). Refused if someone else changed the project since the form was opened |
+| `POST /assignment` | An assignment's title, description and order (`assignment.yml`) |
 
 One dependency, `yaml` (run `npm install` once). Node runs it locally; `npx wrangler`
 deploys it.

@@ -118,7 +118,8 @@ export function assemble(found, texts) {
     let info = {};
     const sha = found.assignmentYml.get(`${p.course}/${p.assignment}`);
     try { info = (sha && parse(texts.get(sha) ?? '')) || {}; } catch (e) { info = {}; }
-    list.push({ id: p.assignment, title: text(info.title) || titleFrom(p.assignment), blurb: text(info.blurb), order: info.order ?? null });
+    list.push({ id: p.assignment, title: text(info.title) || titleFrom(p.assignment), blurb: text(info.blurb),
+      order: info.order ?? null, ymlSha: sha || null });
   }
   return { projects: out, assignments };
 }
