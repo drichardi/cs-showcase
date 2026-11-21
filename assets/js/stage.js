@@ -18,6 +18,9 @@ window.Stage = function (host) {
     f.setAttribute('allow', 'autoplay; fullscreen; gamepad');
     // Repo-hosted sketches share an origin with this site, so they get an opaque one.
     if (emb.hosted) f.setAttribute('sandbox', 'allow-scripts allow-pointer-lock allow-popups allow-modals');
+    // A frame sized to the canvas shows exactly the canvas. Without this, a sketch whose
+    // page runs a few pixels over (an inline canvas leaves a gap under it) gets scrollbars.
+    if (emb.size) f.setAttribute('scrolling', 'no');
     return f;
   }
 
