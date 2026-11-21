@@ -5,51 +5,53 @@
    so adding a project needs no change here.
    ============================================================ */
 window.Work = (function () {
-  let manifest = null, base = window.CS_CONFIG.WORK_BASE, loaded = false;
+  let manifest = null, loaded = false;
   const esc = s => window.esc(s);
 
-  /* The sample work stands in while the work repo can't be reached, and while
-     it's reachable but has no projects yet, so the site never looks empty. */
+  /* Where the work repo lives: CS_CONFIG.WORK_BASE. Only while the site itself runs
+     on localhost, ?work=http://localhost:8000/ previews a local copy of the work repo
+     instead (remembered for the tab). The live site never honours it. */
+  let base = window.CS_CONFIG.WORK_BASE;
+  if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+    try {
+      const q = new URLSearchParams(location.search).get('work');
+      if (q && /^http:\/\/(localhost|127\.0\.0\.1):\d+\/$/.test(q)) sessionStorage.setItem('cs-work-base', q);
+      base = sessionStorage.getItem('cs-work-base') || base;
+    } catch (e) { /* storage blocked: use the configured repo */ }
+  }
+
+  /* Real work only. If the manifest can't be loaded there is no work to show,
+     and pages say so (failed: true) rather than filling in with samples. */
   async function load() {
     if (loaded) return manifest;
     loaded = true;
-    const cfg = window.CS_CONFIG;
-    let reason = 'unreachable';
     try {
-      const res = await fetch(cfg.WORK_BASE + cfg.WORK_MANIFEST, { cache: 'no-cache' });
+      const res = await fetch(base + window.CS_CONFIG.WORK_MANIFEST, { cache: 'no-cache' });
       if (!res.ok) throw new Error(res.status);
       manifest = await res.json();
-      if (Object.values(manifest.courses || {}).some(list => list && list.length)) return manifest;
-      reason = 'empty';
-    } catch (e) { /* unreachable */ }
-    try {
-      const res = await fetch(cfg.FALLBACK_MANIFEST, { cache: 'no-cache' });
-      manifest = await res.json();
-      base = '';                      // sample media paths are site-relative
-      manifest._isSample = reason;
-    } catch (e2) { manifest = { courses: {} }; }
+    } catch (e) {
+      manifest = { courses: {}, failed: true };
+    }
     return manifest;
   }
 
   function forCourse(slug) {
-    if (!manifest || !manifest.courses) return [];
-    return (manifest.courses[slug] || []).filter(p => p.consent !== false);
+    return (manifest && manifest.courses && manifest.courses[slug]) || [];
   }
 
-  function randomFor(slug, exclude) {
-    const list = forCourse(slug).filter(p => p.id !== exclude);
-    if (!list.length) return null;
-    return list[Math.floor(Math.random() * list.length)];
+  function shuffled(list) {
+    const a = list.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
   }
 
-  /* One project per course, courses shuffled, capped at n. */
-  function sample(n, courseSlugs) {
-    const picks = [];
-    courseSlugs.slice().sort(() => Math.random() - 0.5).forEach(slug => {
-      const p = randomFor(slug);
-      if (p) picks.push({ slug, project: p });
-    });
-    return picks.slice(0, n);
+  /* "Spring 2026" from semester + year; either may be missing. */
+  function when(p) {
+    const sem = p.semester ? p.semester[0].toUpperCase() + p.semester.slice(1) : '';
+    return [sem, p.year].filter(Boolean).join(' ');
   }
 
   function url(p) {
@@ -128,28 +130,29 @@ window.Work = (function () {
     el.replaceWith(tile);
   }, true);
 
-  /* A gallery card. The whole card is one button that opens the project
-     on the page's stage; the course link (home page only) sits above it. */
-  function card(slug, project, courseName) {
-    const cover = coverOf(project), live = !!embedOf(project);
-    return `<article class="work-card" data-slug="${esc(slug)}" data-id="${esc(project.id)}">
+  /* A gallery card. The whole card is one button that opens the project on the
+     page's stage. item = { slug, project, courseName, color }. With tag: true the
+     card is labelled with its course (rows on the home page that mix courses). */
+  function card(item, { tag = false } = {}) {
+    const project = item.project, cover = coverOf(project), live = !!embedOf(project);
+    const by = [project.student || 'Student work', when(project)].filter(Boolean).join(' · ');
+    return `<article class="work-card" data-slug="${esc(item.slug)}" data-id="${esc(project.id)}">
       <div class="work-thumb">
         ${cover ? visualEl(cover, project)
           : `<span class="work-media work-media-blank"><span>${esc(project.title)}</span></span>`}
         ${live ? '<span class="play-chip">Play</span>' : ''}
+        ${tag && item.courseName ? `<span class="work-tag" style="--c:${esc(item.color || 'var(--accent)')}">${esc(item.courseName)}</span>` : ''}
       </div>
       <div class="work-body">
         <h5><button type="button" class="work-open">${esc(project.title)}</button></h5>
-        <span class="by">${esc(project.student || 'Student work')}${project.year ? ' · ' + esc(project.year) : ''}${
-          courseName ? ` · <a href="course.html?c=${encodeURIComponent(slug)}#p=${encodeURIComponent(project.id)}">${esc(courseName)}</a>` : ''}</span>
+        <span class="by">${esc(by)}</span>
         ${project.blurb ? `<p>${esc(project.blurb)}</p>` : ''}
       </div>
     </article>`;
   }
 
   return {
-    load, forCourse, randomFor, sample, card, url, esc, embedOf, coverOf, visualEl,
-    isSample: () => !!(manifest && manifest._isSample),
-    sampleReason: () => (manifest && manifest._isSample) || ''
+    load, forCourse, shuffled, when, card, url, esc, embedOf, coverOf, visualEl,
+    failed: () => !!(manifest && manifest.failed)
   };
 })();

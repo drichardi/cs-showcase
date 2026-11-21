@@ -1,9 +1,10 @@
-/* Home page: three tabs (Student work, Courses, Plan a route), one shown at a time. */
+/* Home page. Student work is the page itself; Courses and Plan a route are tabs
+   in the nav that swap it out. One view is shown at a time. */
 (function () {
-  /* ---------- tabs ----------
+  /* ---------- views ----------
      The URL hash picks the view, so links from course pages (index.html#map),
      shared routes (#route=…), tag filters (#tag=…) and the back button all land
-     on the right tab. No hash means Student work. */
+     on the right one. No hash (or #work) is the student work home page. */
   const VIEWS = ['work', 'map', 'plan'];
   function viewFor(hash) {
     const h = (hash || '').replace(/^#/, '');
@@ -29,6 +30,14 @@
   }
   addEventListener('hashchange', () => showView(viewFor(location.hash)));
   showView(viewFor(location.hash));
+
+  // The site name goes home. On this page that's a view switch, not a reload.
+  document.querySelector('.brand').addEventListener('click', e => {
+    e.preventDefault();
+    if (current === 'work') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    history.pushState(null, '', location.pathname + location.search);
+    showView('work');
+  });
 
   (async function () {
     let data;
@@ -65,49 +74,97 @@
     /* ---------- Plan a route ---------- */
     window.Planner.init(data);
 
-    /* ---------- Student work ----------
-       One project per course; a playable one gets the stage when there is one.
-       On a big enough screen the view fits the window (see .theater in the CSS). */
+    /* ---------- Student work (the home page) ----------
+       One project large, chosen at random (a playable one if there is one), then
+       rows of projects by course. On a big enough screen the featured project fits
+       the window, with the start of the rows just showing below (see .theater). */
     const stage = window.Stage(document.getElementById('stage'));
     const theater = document.querySelector('.theater');
     function sizeTheater() {
       if (current !== 'work') return;
       const top = theater.getBoundingClientRect().top + window.scrollY;
-      theater.style.setProperty('--theater-h', Math.max(420, window.innerHeight - top - 18) + 'px');
+      theater.style.setProperty('--theater-h', Math.max(420, window.innerHeight - top - 70) + 'px');
       stage.fit();
     }
     addEventListener('resize', sizeTheater);
 
-    function renderGallery() {
-      const host = document.getElementById('gallery');
-      const picks = window.Work.sample(window.CS_CONFIG.GALLERY_COUNT, data.courses.map(c => c.slug))
-        .map(p => ({ slug: p.slug, project: p.project, courseName: course(p.slug).short }));
-      if (!picks.length) {
-        host.innerHTML = `<div class="empty-work" style="grid-column:1/-1">Student work appears here once the work repo has projects in it.</div>`;
+    const color = c => (data.lines.find(l => l.id === c.line) || {}).color || '';
+    const item = (c, p) => ({ slug: c.slug, project: p, courseName: c.short || c.name, color: color(c) });
+    const shown = data.courses
+      .map((c, order) => ({ c, order, list: window.Work.forCourse(c.slug) }))
+      .filter(x => x.list.length);
+
+    /* Each course with at least ROW_MIN projects gets its own row of up to ROW_SIZE,
+       picked at random. Courses with fewer share rows, packed in course order and
+       never split across two, with each card labelled with its course. A course
+       with no projects gets no row. */
+    function buildRows() {
+      const size = window.CS_CONFIG.ROW_SIZE || 5, min = Math.min(window.CS_CONFIG.ROW_MIN || 4, size);
+      const rows = [];
+      shown.filter(x => x.list.length >= min).forEach(x => rows.push({
+        order: x.order, courses: [x.c], total: x.list.length,
+        items: window.Work.shuffled(x.list).slice(0, size).map(p => item(x.c, p))
+      }));
+      let shared = null;
+      shown.filter(x => x.list.length < min).forEach(x => {
+        if (!shared || shared.items.length + x.list.length > size) {
+          shared = { order: x.order, courses: [], items: [], total: 0 };
+          rows.push(shared);
+        }
+        shared.courses.push(x.c);
+        shared.total += x.list.length;
+        shared.items.push(...window.Work.shuffled(x.list).map(p => item(x.c, p)));
+      });
+      return rows.sort((a, b) => a.order - b.order);
+    }
+
+    function rowsHtml(rows) {
+      return rows.map(r => {
+        const one = r.courses.length === 1, c = r.courses[0];
+        const head = one
+          ? `<a class="row-title" style="--c:${esc(color(c))}" href="course.html?c=${encodeURIComponent(c.slug)}">${esc(c.name)}</a>
+             <a class="row-more" href="course.html?c=${encodeURIComponent(c.slug)}">${
+               r.total > r.items.length ? `All ${r.total} projects →` : 'Course page →'}</a>`
+          : `<span class="row-title is-shared">${r.courses.map(x =>
+               `<a style="--c:${esc(color(x))}" href="course.html?c=${encodeURIComponent(x.slug)}">${esc(x.short || x.name)}</a>`).join('')}</span>`;
+        return `<div class="work-row">
+          <div class="row-head">${head}</div>
+          <div class="row-cards" style="--row:${window.CS_CONFIG.ROW_SIZE || 5}">
+            ${r.items.map(it => window.Work.card(it, { tag: !one })).join('')}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderRows() {
+      const rows = buildRows();
+      document.getElementById('rowsHead').hidden = !rows.length;
+      window.Stage.gallery(document.getElementById('rows'), rows.flatMap(r => r.items), stage, null, () => rowsHtml(rows));
+    }
+
+    function renderHome() {
+      const all = shown.flatMap(x => x.list.map(p => item(x.c, p)));
+      if (!all.length) {
+        document.getElementById('stage').innerHTML = `<div class="empty-work">${window.Work.failed()
+          ? "Student work couldn't be loaded just now. Try again in a minute."
+          : 'No student work has been published yet.'}</div>`;
         return;
       }
-      stage.show(picks.find(p => window.Work.embedOf(p.project)) || picks[0]);
-      window.Stage.gallery(host, picks, stage);
+      const playable = all.filter(it => window.Work.embedOf(it.project));
+      const pool = playable.length ? playable : all;
+      stage.show(pool[Math.floor(Math.random() * pool.length)]);
+      renderRows();
     }
-    document.getElementById('btnReshuffle').addEventListener('click', renderGallery);
+    document.getElementById('btnReshuffle').addEventListener('click', renderRows);
 
-    // Load the gallery the first time the tab opens. Leaving the tab stops a
-    // running sketch or game, so its sound doesn't carry on behind another tab.
+    // Built the first time the page shows. Switching to another view stops a
+    // running sketch or game, so its sound doesn't carry on behind it.
     let started = false;
     enter.work = () => {
       sizeTheater();
-      if (!started) { started = true; renderGallery(); } else stage.resume();
+      if (!started) { started = true; renderHome(); } else stage.resume();
     };
     leave.work = () => stage.pause();
-
-    if (window.Work.isSample()) {
-      const b = document.createElement('p');
-      b.className = 'mono sample-note';
-      b.textContent = window.Work.sampleReason() === 'empty'
-        ? 'Sample work — shown until the work repo has its first project.'
-        : 'Sample work — point WORK_BASE in assets/js/config.js at your repo to go live.';
-      document.querySelector('.work-head > div').appendChild(b);
-    }
 
     if (current && enter[current]) enter[current]();
   })();

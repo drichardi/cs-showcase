@@ -41,8 +41,10 @@
         ${items.length > 1 ? `
           <p class="more-head mono">${items.length} projects from ${esc(c.short || c.name)}</p>
           <div class="gallery gallery-sm" id="courseGallery"></div>` : ''}`
-      : `<div class="empty-work">No student work posted yet. Drop a folder into
-           <code style="color:var(--ink-2)">${esc(c.slug)}/</code> in the work repo and it shows up here.</div>`}
+      : window.Work.failed()
+        ? `<div class="empty-work">Student work couldn't be loaded just now. Try again in a minute.</div>`
+        : `<div class="empty-work">No student work published for this course yet. Add a project folder under
+             <code style="color:var(--ink-2)">${esc(c.slug)}/</code> in the work repo with <code style="color:var(--ink-2)">show: true</code> in its project.yml.</div>`}
     </div>
 
     <div class="wrap course-body">

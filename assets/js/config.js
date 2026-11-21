@@ -15,9 +15,10 @@ window.CS_CONFIG = {
   // Name of the generated index inside that repo. Built by the GitHub Action.
   WORK_MANIFEST: "manifest.json",
 
-  // Shown while the real repo is empty or unreachable.
-  FALLBACK_MANIFEST: "data/sample-work.json",
-
-  // How many projects to show in the gallery on the home page.
-  GALLERY_COUNT: 6
+  // Home page rows, under the featured project. Each course with at least
+  // ROW_MIN projects gets its own row of up to ROW_SIZE, picked at random.
+  // Courses with fewer share rows, each card labelled with its course.
+  // Courses with none get no row.
+  ROW_SIZE: 5,
+  ROW_MIN: 4
 };

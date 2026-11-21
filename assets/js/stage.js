@@ -56,14 +56,28 @@ window.Stage = function (host) {
     }
     box.style.width = Math.floor(w) + 'px';
     box.style.height = Math.floor(h) + 'px';
-    // The caption lines up under the piece, like a label on a wall.
+    // Under the piece, the caption is as wide as it, like a label on a wall.
+    // Beside it (wide screens), it fills its own column.
     const info = host.querySelector('.stage-info');
-    if (info && !full) info.style.maxWidth = theater ? '' : Math.floor(Math.max(w, Math.min(availW, 560))) + 'px';
+    if (info && !full) info.style.maxWidth = theater || besideMedia() ? '' : Math.floor(Math.max(w, Math.min(availW, 560))) + 'px';
+  }
+
+  /* Wide screens put the caption in a column to the right of the project. */
+  function besideMedia() {
+    const st = host.querySelector('.stage');
+    return !!st && getComputedStyle(st).gridTemplateColumns.trim().split(/\s+/).length > 1;
   }
 
   /* In the theater layout the CSS dissolves the stage's own boxes (display:contents)
      so its parts can sit in the page's grid: the project left, its caption right. */
   function inTheater() { return getComputedStyle(host).display === 'contents'; }
+
+  /* Optional instructions from project.yml: one string (line breaks kept) or a list. */
+  function howTo(v) {
+    if (Array.isArray(v) && v.length) return `<ul>${v.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+    if (typeof v === 'string' && v.trim()) return v.trim().split(/\n+/).map(x => `<p>${esc(x)}</p>`).join('');
+    return '';
+  }
 
   /* item = { slug, project, courseName }
      autoload: start a playable project now (default: its own autoplay setting)
@@ -74,7 +88,7 @@ window.Stage = function (host) {
     const links = (p.links || []).map(l =>
       `<a href="${esc(W.url(l.url))}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`);
     const repo = window.CS_CONFIG.WORK_REPO;
-    if (emb && emb.hosted && repo && p.path && !W.isSample()) {
+    if (emb && emb.hosted && repo && p.path) {
       links.push(`<a href="${esc(repo.replace(/\/+$/, ''))}/tree/HEAD/${esc(p.path)}" target="_blank" rel="noopener">View code ↗</a>`);
     } else if (emb && emb.codeUrl) {
       links.push(`<a href="${esc(emb.codeUrl)}" target="_blank" rel="noopener">View code ↗</a>`);
@@ -98,8 +112,9 @@ window.Stage = function (host) {
         <div class="stage-info">
           ${item.courseName ? `<a class="stage-course" href="course.html?c=${encodeURIComponent(item.slug)}#p=${encodeURIComponent(p.id)}">${esc(item.courseName)} →</a>` : ''}
           <h3>${esc(p.title)}</h3>
-          <span class="by">${esc(p.student || 'Student work')}${p.year ? ' · ' + esc(p.year) : ''}</span>
-          ${p.blurb ? `<p>${esc(p.blurb)}</p>` : ''}
+          <span class="by">${esc([p.student || 'Student work', W.when(p)].filter(Boolean).join(' · '))}</span>
+          ${p.blurb ? `<p class="stage-blurb">${esc(p.blurb)}</p>` : ''}
+          ${howTo(p.instructions) ? `<div class="stage-how"><h4>Try it</h4>${howTo(p.instructions)}</div>` : ''}
           ${emb && emb.size ? `<p class="stage-hint">Click the sketch to give it the mouse and keyboard.</p>` : ''}
           ${links.length || canFull ? `<div class="work-links">
             ${canFull ? '<button type="button" class="stage-full">Full screen</button>' : ''}
@@ -119,11 +134,13 @@ window.Stage = function (host) {
     if (emb && (autoload ?? emb.autoplay)) start(!!focus);
   }
 
-  /* Bring the stage into view if a gallery click happened far below it. */
+  /* Bring the stage back into view after a click on a card far below it. */
   function reveal() {
-    if (inTheater()) return;          // everything is already on screen
-    const r = host.getBoundingClientRect();
-    if (r.top < 60 || r.top > window.innerHeight * 0.4) host.scrollIntoView({ block: 'start' });
+    const anchor = inTheater() ? host.closest('.theater') : host;
+    const r = anchor.getBoundingClientRect();
+    if (r.top < 56 || r.top > window.innerHeight * 0.4) {
+      window.scrollTo({ top: Math.max(0, r.top + window.scrollY - 72), behavior: 'smooth' });
+    }
   }
 
   if ('ResizeObserver' in window) new ResizeObserver(() => fit()).observe(host);
@@ -137,9 +154,10 @@ window.Stage = function (host) {
   return { show, reveal, fit, pause, resume, get current() { return current; } };
 };
 
-/* Render cards into `el`; clicking one plays it on `stage`. */
-window.Stage.gallery = function (el, items, stage, onPick) {
-  el.innerHTML = items.map(it => window.Work.card(it.slug, it.project, it.courseName)).join('');
+/* Render cards into `el`; clicking one plays it on `stage`. `render` can lay the
+   items out differently (the home page's rows); every card is still wired up. */
+window.Stage.gallery = function (el, items, stage, onPick, render) {
+  el.innerHTML = render ? render(items) : items.map(it => window.Work.card(it)).join('');
   const mark = () => el.querySelectorAll('.work-card').forEach(c => {
     const cur = stage.current;
     const on = !!cur && c.dataset.slug === cur.slug && c.dataset.id === String(cur.project.id);

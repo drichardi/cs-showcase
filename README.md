@@ -5,12 +5,13 @@ Static site — no build step, no dependencies, no framework. Push to GitHub Pag
 ```
 index.html
 data/courses.json        ← all course content lives here
-data/sample-work.json    ← placeholder work, shown until the work repo is live
 assets/js/config.js      ← the one plumbing file: where the work repo lives
 assets/js/…              topo backdrop, map, planner, work loader, stage, boot
 assets/css/style.css
-assets/sample/           placeholder thumbnails and a sample p5 sketch (delete once real work exists)
 ```
+
+Student work comes only from the companion `cs-student-work` repo. There is no
+placeholder work: a course with nothing published shows nothing.
 
 ## Setup
 
@@ -24,9 +25,8 @@ assets/sample/           placeholder thumbnails and a sample p5 sketch (delete o
 WORK_BASE: "https://YOUR-ORG.github.io/cs-student-work/",
 ```
 
-Until that URL resolves, and while the work repo has no projects in it yet, the site
-quietly falls back to `data/sample-work.json` and shows a small note under the gallery.
-Nothing breaks. Once the first real project is published, the samples disappear.
+If the work repo can't be reached, the pages say student work couldn't be loaded;
+everything else still works.
 
 ## Changing course content
 
@@ -79,20 +79,39 @@ counselor or parent with no account and no backend.
 ## Student work comes first
 
 Each course page opens with one of that course's projects shown large, chosen at
-random, with every other project from the course in a grid underneath. Clicking a
-card loads it into the large view. A playable project (a p5 sketch, an itch.io game)
+random, with every other project from the course in a grid underneath. On wide screens
+the caption sits to the right of the project: title, students, term, blurb, and a
+"Try it" box when the project's `project.yml` has `instructions`. Clicking a card loads
+it into the large view. A playable project (a p5 sketch, an itch.io game)
 runs right there, scaled up to fill the space; sketches with a fixed canvas keep the
 mouse lined up at any scale. `course.html?c=intro-programming#p=<folder-name>` opens
 a specific project first, so a student can share a link to their own work.
 
-## Home page tabs
+## The home page
 
-The home page has three tabs, one shown at a time: **Student work** (the default),
-**Courses** (the intro and the map) and **Plan a route** (the planner and FAQ). The URL
-hash picks the tab (`#work`, `#map`, `#plan`), so links from course pages, shared
-routes (`#route=…`), tag filters (`#tag=…`) and the back button all land on the right one.
+The home page **is** the student work page. One project is shown large, chosen at
+random (a playable one when there is one). On screens at least 1000×560 it fits the
+window, with its caption to the right and the start of the rows peeking in below.
 
-Student work shows one project per course. On screens at least 1000×560 it fits the
-window: the project fills the left and the heading, caption and the other projects sit
-in a column on the right. Smaller screens stack them. Switching tabs stops a running
-sketch or game. How to add sketches and size them is in the work repo's README.
+Under it are rows of projects by course, picked at random on each visit (Shuffle picks
+again). `ROW_SIZE` and `ROW_MIN` in `assets/js/config.js` set the rules:
+
+- a course with at least `ROW_MIN` (4) projects gets its own row of up to `ROW_SIZE` (5)
+- courses with fewer share rows, packed in course order and never split across two
+  rows, with each card labelled with its course
+- a course with no published projects gets no row
+
+Clicking any card plays it in the large view. On phones each row is a strip you swipe.
+
+**Courses** (the intro and the map) and **Plan a route** (the planner and FAQ) are
+links in the nav that swap the home page out; the site name brings it back. The URL
+hash picks the view (`#map`, `#plan`; none for the home page), so links from course
+pages, shared routes (`#route=…`), tag filters (`#tag=…`) and the back button all land
+on the right one. Switching away stops a running sketch or game.
+
+## Previewing a local copy of the work repo
+
+When this site runs on localhost, `index.html?work=http://localhost:8125/` reads
+student work from a local server instead of GitHub Pages (remembered for that browser
+tab). The server must send `Access-Control-Allow-Origin: *`, as GitHub Pages does. The
+live site ignores the parameter.
