@@ -6,11 +6,11 @@ import { gh } from './github.js';
 import { HttpError } from './http.js';
 
 export const LIMITS = { totalBytes: 25 * 1024 * 1024, binaryFiles: 40, files: 300 };
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SEMESTERS = ['spring', 'summer', 'fall'];
-const JUNK = /(^|\/)(__MACOSX|\.DS_Store|Thumbs\.db|desktop\.ini)(\/|$)/i;
+export const JUNK = /(^|\/)(__MACOSX|\.DS_Store|Thumbs\.db|desktop\.ini)(\/|$)/i;
 export const PICTURE = /\.(png|jpe?g|webp|gif|svg|avif|mp4|webm|mov)$/i;
-const SEGMENT = /^[\w\-. ()+@,]+$/;
+export const SEGMENT = /^[\w\-. ()+@,]+$/;
 
 /* ---------- names ---------- */
 
@@ -146,7 +146,7 @@ export function cleanFiles(list) {
   return out;
 }
 
-function b64(value, what) {
+export function b64(value, what) {
   const s = str(value);
   if (!/^[A-Za-z0-9+/]*={0,2}$/.test(s)) throw bad('files', `"${what}" didn't upload properly. Try again.`);
   return { base64: s, bytes: Math.floor(s.length * 3 / 4) - (s.endsWith('==') ? 2 : s.endsWith('=') ? 1 : 0) };
@@ -266,7 +266,7 @@ export async function saveCommit(env, { parent, entries, message, user, recheck 
 }
 
 /* Names in a repo folder at a commit, or null if the folder doesn't exist. */
-async function listDir(env, dir, ref) {
+export async function listDir(env, dir, ref) {
   try {
     const list = await gh(env, `/contents/${dir.split('/').map(encodeURIComponent).join('/')}?ref=${ref}`, { access: 'write' });
     return Array.isArray(list) ? list.map(x => x.name) : null;

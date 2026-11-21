@@ -401,8 +401,7 @@ window.AdminAdd = (function () {
   }
 
   /* A frame sized to the canvas, scaled to fit the preview box like the site's stage. */
-  function showFrame(source, size) {
-    const box = $('previewBox');
+  function showFrame(source, size, box = $('previewBox')) {
     if (!box) return;
     const f = document.createElement('iframe');
     // An uploaded sketch runs walled off, so student code can't reach the dashboard.
@@ -724,5 +723,7 @@ window.AdminAdd = (function () {
     });
   }
 
-  return { open };
+  // Shared with "Add several" (batch.js).
+  const util = { JSZIP, JUNK, PICTURE, MAX_BYTES, script, sketchDocument, showFrame, canvasOf, sizeOf, tidyName, slugify, joinNames, base64, mb };
+  return { open, util };
 })();

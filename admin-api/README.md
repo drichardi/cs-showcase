@@ -16,6 +16,9 @@ out 8-hour dashboard sessions, and reads (and later saves) projects in the priva
 | `GET /project?path=` | One project, for the edit form (details, files, cover, and its `project.yml` version) |
 | `POST /project` | Save edits: details, Show/Hide, replaced files, a new or removed cover; or set up a sketch folder that has no `project.yml`. Keeps the rest of `project.yml` (comments included). Refused if someone else changed the project since the form was opened |
 | `POST /assignment` | An assignment's title, description and order (`assignment.yml`) |
+| `POST /blobs/check` | For a class set: which of these file ids (git blob SHA-1s, worked out in the browser) the repo doesn't have yet |
+| `POST /blobs?sha=` | Upload one of those files. The body is its base64, passed to GitHub as is; refused if GitHub's id for it doesn't match |
+| `POST /projects/batch` | Add a class set (up to 40 sketches) as one commit: shared course, assignment and term, per-sketch title, students and Show. Small text files come inline; bigger ones (p5.js, pictures) by id, so a p5.js the repo already has is never sent again |
 
 One dependency, `yaml` (run `npm install` once). Node runs it locally; `npx wrangler`
 deploys it.

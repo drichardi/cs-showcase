@@ -13,6 +13,10 @@
      POST /project   save edits (details, show/hide, files, cover); refused if
                      someone else changed the project since the form was opened
      POST /assignment  an assignment's title, description and order
+     POST /blobs/check { shas }  which of these files the repo doesn't have yet
+     POST /blobs?sha=…  upload one file (the body is its base64), for a class set
+     POST /projects/batch  add a class set: many sketches as one commit, with
+                     their files referred to by id (uploaded first via /blobs)
 
    Everything except POST /session needs  Authorization: Bearer <session>.
 
@@ -25,6 +29,7 @@ import { createSession, requireUser } from './auth.js';
 import { listProjects, readFile } from './projects.js';
 import { createProject, publishStatus } from './write.js';
 import { readProject, updateProject, saveAssignment } from './edit.js';
+import { checkBlobs, uploadBlob, createBatch } from './batch.js';
 
 export default {
   async fetch(request, env) {
@@ -61,6 +66,18 @@ export default {
       if (route === 'POST /assignment') {
         const user = await requireUser(request, env);
         return json(await saveAssignment(request, env, user), 200, cors);
+      }
+      if (route === 'POST /blobs/check') {
+        await requireUser(request, env);
+        return json(await checkBlobs(request, env), 200, cors);
+      }
+      if (route === 'POST /blobs') {
+        await requireUser(request, env);
+        return json(await uploadBlob(request, env, url), 200, cors);
+      }
+      if (route === 'POST /projects/batch') {
+        const user = await requireUser(request, env);
+        return json(await createBatch(request, env, user), 200, cors);
       }
       if (route === 'GET /file') {
         await requireUser(request, env);

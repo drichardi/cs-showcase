@@ -47,7 +47,7 @@ export async function gh(env, path, { method = 'GET', body, access = 'read', acc
   const res = await fetch(`${API}/repos/${env.GITHUB_REPO}${path}`, {
     method,
     headers: { ...headers(await installationToken(env, access)), ...(accept ? { Accept: accept } : {}) },
-    body: body && JSON.stringify(body)
+    body: body instanceof Blob ? body : body && JSON.stringify(body)   // a Blob goes as is
   });
   if (!res.ok) throw githubError(res.status, await res.text());
   return raw ? res : res.json();

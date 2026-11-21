@@ -140,6 +140,11 @@ teacher list; then:
   "Try it" steps; choose a cover; tick "Show it on the site" (which needs the consent box).
   Publishing saves it to the repo as one change under the teacher's name and shows when
   it's live, about a minute later.
+- **Add several:** a class set at once. Pick the course, assignment and term, then drop in
+  the students' zips or a folder of them (a Google Classroom or Drive download works,
+  zips inside zips included). Every sketch found becomes a row with its title and
+  students guessed from the file names, a preview, and a Show box; one consent box covers
+  the ones marked Show. Files the repo already has, like p5.js, aren't uploaded again.
 - **Edit:** every card has Edit (Set up for a sketch folder with no `project.yml`, Fix for
   one with a mistake) and Show on site / Hide. Editing changes the details, the cover, or
   the files (upload a new version of the sketch); anything else in `project.yml` is kept.
