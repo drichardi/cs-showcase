@@ -35,11 +35,18 @@ window.AdminAdd = (function () {
     clearTimeout(pollTimer);
     d = context.edit ? fromProject(context.edit) : fresh(context.keep || {});
     render();
+    // Anything changed since the page opened, and not yet saved? (Asked before leaving.)
+    const start = snapshot();
+    window.AdminDirty = () => !(d.save && d.save.res) && snapshot() !== start;
     el.scrollIntoView({ block: 'start' });
     if (d.edit && d.edit.cover) {
       ctx.api.file(`${d.edit.path}/${d.edit.cover}`).then(url => { d.currentCoverUrl = url; renderCover(); renderCard(); }).catch(() => {});
     }
   }
+
+  const snapshot = () => JSON.stringify([d.course, d.assignment, d.newAssignment, d.semester, d.year, d.kind, d.files.length,
+    d.sketchName, d.link, d.pictures.map(p => p.path), d.mediaCover, d.coverMode, !!d.coverFile, d.title, d.students, d.blurb,
+    d.instructions, d.links, d.show, d.consent, d.folder, d.replacing]);
 
   function fromProject(p) {
     return Object.assign(fresh(), {
@@ -173,7 +180,10 @@ window.AdminAdd = (function () {
   /* ---------- wiring ---------- */
   const $ = id => el.querySelector('#' + id);
   function bind() {
-    $('back').addEventListener('click', () => { clearTimeout(pollTimer); ctx.onClose(!!(d.save && d.save.res)); });
+    $('back').addEventListener('click', () => {
+      if (window.AdminDirty && window.AdminDirty() && !confirm('Leave without saving? What you\'ve entered here will be lost.')) return;
+      clearTimeout(pollTimer); ctx.onClose(!!(d.save && d.save.res));
+    });
     $('course').addEventListener('change', e => {
       d.course = e.target.value; d.assignment = '';
       $('assignment').innerHTML = assignmentOptions(); $('assignment').disabled = !d.course;

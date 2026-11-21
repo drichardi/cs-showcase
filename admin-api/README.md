@@ -9,7 +9,7 @@ out 8-hour dashboard sessions, and reads (and later saves) projects in the priva
 |---|---|
 | `POST /session` | Google sign-in in, dashboard session out |
 | `GET /me` | Who is signed in |
-| `GET /projects` | Every project, shown or hidden, plus sketch folders with no `project.yml` yet, with what each is missing. Same rules as the work repo's `build_manifest.py` |
+| `GET /projects` | Every project, shown or hidden, plus sketch folders with no `project.yml` yet. Each has `issues` (things to fix: no student names, a missing file, no cover for a link…) and `tips` (nice to add: a description, "Try it" steps). Same rules as the work repo's `build_manifest.py` |
 | `GET /file?path=` | A cover picture or video from the repo, for thumbnails |
 | `POST /projects` | Add a project: details and files in, checked, then saved as one commit under the teacher's name, with `project.yml` (and `assignment.yml` for a new assignment) written for them |
 | `GET /status?commit=` | Whether that save is live yet (the work repo's Action run for it) |

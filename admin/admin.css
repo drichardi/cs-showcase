@@ -52,6 +52,7 @@
 .proj-where{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:2px 0 0}
 .proj-issues{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px}
 .proj-issues li{font-size:.7rem;padding:2px 7px;border-radius:2px;background:var(--buff);color:var(--ink-2);border:1px solid var(--rule)}
+.proj-tips{font-size:.74rem;color:var(--ink-3);margin:6px 0 0}
 .proj-path{font-family:var(--mono);font-size:.58rem;color:var(--ink-3);margin:auto 0 0;padding-top:8px;word-break:break-all}
 .proj-link{font-size:.8rem;margin-top:6px;color:var(--accent)}
 .proj-head .btn + .btn{margin-left:0}
@@ -179,4 +180,44 @@ div.add-err{padding:10px 14px;border-left:3px solid var(--l4);background:var(--b
   .b-row > label:nth-of-type(1),.b-row > label:nth-of-type(2){grid-column:2 / -1}
   .b-show{grid-column:2;padding-bottom:0}
   .b-x{grid-column:3}
+}
+
+/* ---------- sign in again (the session ran out) ---------- */
+.admin-modal{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:rgba(8,18,38,.55)}
+.admin-modal .admin-card{max-width:460px;width:100%}
+.admin-modal .btn{margin-top:14px}
+
+/* ---------- the teacher guide (guide.html) ---------- */
+.guide > .admin-card{max-width:820px}
+.guide h1{margin-bottom:4px}
+.guide h2{font-size:1.35rem;margin:0 0 10px}
+.guide section{margin-top:30px;padding:24px 0 0;border-top:1px solid var(--rule)}
+.guide p,.guide li,.guide dd{color:var(--ink-2);line-height:1.6;max-width:68ch}
+.guide p{margin:10px 0 0}
+.guide b{color:var(--ink)}
+.guide .guide-lede{font-size:1.05rem}
+.guide ol,.guide ul{margin:10px 0 0;padding-left:22px}
+.guide li{margin:6px 0}
+.guide li ul{margin-top:6px}
+.guide-toc{display:flex;flex-wrap:wrap;gap:6px;margin-top:22px}
+.guide-toc a{font-size:.82rem;padding:5px 11px;border:1px solid var(--rule-2);border-radius:99px;text-decoration:none;color:var(--ink);background:var(--paper)}
+.guide-toc a:hover{border-color:var(--accent);color:var(--accent)}
+.guide section.guide-rules{border:0;margin-top:26px;padding:16px 20px 18px;background:var(--buff);border-left:3px solid var(--accent);border-radius:var(--radius)}
+.guide-rules h2{font-size:1.1rem}
+.guide-steps > li::marker{font-family:var(--mono);font-weight:600;color:var(--accent)}
+.guide-dl{margin:12px 0 0;display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:8px 18px}
+.guide-dl dt{font-weight:600;color:var(--ink)}
+.guide-dl dd{margin:0}
+.guide-trouble{grid-template-columns:minmax(160px,15rem) 1fr}
+.guide-foot{font-size:.9rem;color:var(--ink-3)!important}
+.guide section{scroll-margin-top:72px}
+@media (max-width:640px){
+  .guide-dl,.guide-trouble{grid-template-columns:1fr;gap:2px}
+  .guide-dl dd{margin-bottom:10px}
+}
+@media print{
+  .nav,#topo,.guide-toc{display:none!important}
+  .guide{padding:0}
+  .guide > .admin-card{border:0;box-shadow:none;padding:0;max-width:none}
+  .guide section{break-inside:avoid-page}
 }

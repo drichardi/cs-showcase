@@ -83,16 +83,16 @@ test('a hidden project: explicit media cover, old fields flagged, missing bits l
   assert.equal(l.assignment, '');
   assert.equal(l.cover, 'data-structures-algorithms/lanai/shot.png');
   assert.equal(l.embed, true);
-  assert.ok(l.issues.includes('No blurb'));
-  assert.ok(l.issues.includes('No instructions'));
-  assert.ok(l.issues.includes('Uses the old consent/draft fields'));
+  assert.deepEqual(l.tips, ['a description', '"Try it" steps'], 'nice to have, not problems');
+  assert.ok(l.issues.includes('Old consent/draft fields: open Edit and save to tidy'));
+  assert.ok(!l.issues.some(i => /description|Try it/.test(i)));
 });
 
 test('a sketch folder without project.yml shows up as not set up', () => {
   const a = byPath['intro-programming/tiling/anna-f-tiling-f26'];
   assert.equal(a.status, 'not-set-up');
   assert.equal(a.title, 'Anna F Tiling F26');
-  assert.deepEqual(a.issues, ['No project.yml yet']);
+  assert.deepEqual(a.issues, ['No details yet: press Set up']);
 });
 
 test('a project.yml with a mistake is reported, not fatal', () => {

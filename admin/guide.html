@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Teacher guide — Punahou CS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="admin.css">
+<script src="../assets/js/shared.js"></script>
+</head>
+<body>
+<svg id="topo" aria-hidden="true"></svg>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="../index.html"><span class="dot"></span> Computer Science</a>
+    <nav>
+      <a href="./">Teacher dashboard</a>
+      <span class="ctl"></span>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap admin guide">
+  <article class="admin-card">
+    <p class="mono admin-eyebrow">Teacher guide</p>
+    <h1>Putting student work on the CS showcase</h1>
+    <p class="guide-lede">The <a href="./">teacher dashboard</a> adds, changes, shows and hides the student projects on the
+      showcase site. You never touch code or GitHub. Everything here takes a few minutes, and nothing you do
+      can break the site.</p>
+
+    <nav class="guide-toc" aria-label="On this page">
+      <a href="#rules">Three rules</a>
+      <a href="#sign-in">Signing in</a>
+      <a href="#add">Add one project</a>
+      <a href="#several">Add a class set</a>
+      <a href="#change">Change, show or hide</a>
+      <a href="#list">Finding things</a>
+      <a href="#trouble">If something goes wrong</a>
+    </nav>
+
+    <section id="rules" class="guide-rules">
+      <h2>Three rules</h2>
+      <ol>
+        <li><b>Only show work the student agreed to share.</b> New projects start <i>hidden</i>. Ticking
+          "Show it on the site" asks you to confirm the student(s) agreed.</li>
+        <li><b>First name and last initial</b>, like <i>Noa P.</i> Never a full name.</li>
+        <li><b>Hidden is safe.</b> A hidden project is saved but not on the site. If you're unsure, leave it hidden.</li>
+      </ol>
+    </section>
+
+    <section id="sign-in">
+      <h2>Signing in</h2>
+      <p>Open the <a href="./">dashboard</a> and sign in with your Punahou Google account. Only CS teachers on the
+        dashboard's list can get in; ask a colleague who manages it to add you.</p>
+      <p>A sign-in lasts 8 hours in that browser tab. If it runs out while you're working, a "Sign in again" box
+        appears over the page. Sign in there and carry on; nothing you've typed is lost.</p>
+    </section>
+
+    <section id="add">
+      <h2>Add one project</h2>
+      <p>Press <b>Add project</b>. The page has four parts.</p>
+      <ol class="guide-steps">
+        <li><b>Where it goes:</b> the course, the assignment (or "New assignment…"), and the term.</li>
+        <li><b>The work</b>, one of:
+          <ul>
+            <li><b>p5 sketch:</b> in the p5 editor choose <i>File → Download</i>, then drop that zip on the page. A sketch
+              folder works too. It starts playing in a preview, just as it will on the site.</li>
+            <li><b>Link:</b> paste a p5 editor, Scratch or CodePen link. For an itch.io game, use the address from the
+              game's "Embed game" settings, not its page.</li>
+            <li><b>Pictures or video:</b> for work that isn't interactive. Pick which picture is the cover.</li>
+          </ul>
+        </li>
+        <li><b>Details:</b> a title, the student(s) (press Enter after each name), a sentence or two on what it is,
+          and optional <b>"How to use it"</b> steps, one per line, like <i>Click to jump</i>. Those show as
+          "Try it" beside the project. Links to the code or a write-up are optional too.</li>
+        <li><b>Publish:</b> choose the cover (a sketch gets a screenshot automatically; for a link, upload a
+          picture), tick "Show it on the site" if the student agreed, and press <b>Publish</b>. The list under the
+          button says what's still missing.</li>
+      </ol>
+      <p>It's on the site <b>about a minute</b> later; the page tells you when, with a link to see it. A project can
+        be up to 25 MB. A bigger game belongs on itch.io, added here as a Link.</p>
+    </section>
+
+    <section id="several">
+      <h2>Add a class set</h2>
+      <p>For a whole class's sketches for one assignment, press <b>Add several</b>.</p>
+      <ol class="guide-steps">
+        <li>Pick the course, assignment and term once, for all of them.</li>
+        <li>Drop in the students' zips, or a folder of them. A Google Classroom or Drive download works as it
+          is, zips inside zips included. Each sketch found becomes a row.</li>
+        <li>Check each row. Titles and names are guessed from the file names, so fix any that are wrong
+          (names are tidied to <i>Noa P.</i> when you leave the box). <b>▶ Preview</b> plays that sketch.</li>
+        <li>Tick <b>Show</b> on the ones to put on the site (or "Show all"), and tick the one consent box.</li>
+        <li>Optional: "How to use it" steps, shared by all of them.</li>
+        <li>Press <b>Publish</b>. Up to 40 at a time.</li>
+      </ol>
+      <p>Anything that wasn't a sketch (a student who handed in a document, a zip that won't open) is listed
+        separately, so you know who to follow up with. Add descriptions and covers to each project later with
+        <b>Edit</b>.</p>
+    </section>
+
+    <section id="change">
+      <h2>Change, show or hide</h2>
+      <p>Each project card has buttons:</p>
+      <dl class="guide-dl">
+        <dt>Edit</dt><dd>Change the details or the cover, or upload a new version of the sketch.</dd>
+        <dt>Show on site / Hide</dt><dd>One click, after a confirmation. Hiding takes it off the site but keeps it, so
+          you can show it again any time.</dd>
+        <dt>Set up</dt><dd>A sketch is in the repo but has no details yet, so it isn't on the site. Fill them in.</dd>
+        <dt>Fix</dt><dd>Its details file has a mistake (usually from editing by hand). Saving the form writes a
+          fresh one.</dd>
+      </dl>
+      <p><b>Assignments:</b> choose a course and an assignment above the list to see its name and description,
+        then <b>Edit assignment</b>. The description shows on the course page above its projects; "Order" decides
+        which assignment comes first.</p>
+      <p>Removing a project for good isn't in the dashboard yet. Hide it, and ask a colleague who manages the
+        repo if it really must go.</p>
+    </section>
+
+    <section id="list">
+      <h2>Finding things</h2>
+      <p>Search by title, student or assignment, or filter by course, assignment and status:</p>
+      <ul>
+        <li><b>On the site</b> and <b>Hidden</b> are what they say.</li>
+        <li><b>Needs details</b>: a sketch waiting for <b>Set up</b>. <b>Needs fixing</b>: press <b>Fix</b>.</li>
+        <li><b>Needs attention</b> shows only projects with something to fix, like missing student names or a link
+          with no cover. "Could add" on a card is a suggestion, never required.</li>
+      </ul>
+    </section>
+
+    <section id="trouble">
+      <h2>If something goes wrong</h2>
+      <dl class="guide-dl guide-trouble">
+        <dt>"Someone else changed this project"</dt>
+        <dd>A colleague saved it while you had it open. Go back to Projects, open it again, and redo your change.</dd>
+        <dt>"Saved, but publishing failed"</dt>
+        <dd>Your work is safe in the repo; only the site's update didn't finish. Don't add it again (that would make
+          a second copy). Ask a colleague who manages the repo; the "See what happened" link shows them why.</dd>
+        <dt>"Not saved", or the server didn't answer</dt>
+        <dd>Check your connection and press Publish again. Nothing is half-saved: it all saves or none of it does.</dd>
+        <dt>A sketch's cover is blank or odd</dt>
+        <dd>Some sketches draw nothing until clicked. Open <b>Edit</b> and upload a screenshot as the cover.</dd>
+        <dt>A file name "can't be used here"</dt>
+        <dd>Rename that file in the sketch (letters, numbers, spaces, - and _ are fine), download it again, and
+          re-add it.</dd>
+        <dt>Over 25 MB</dt>
+        <dd>Put the game on itch.io and add it as a Link.</dd>
+        <dt>A "Test mode" banner</dt>
+        <dd>The dashboard is being worked on and saves go to a practice copy, not the site. Wait for it to go.</dd>
+      </dl>
+      <p class="guide-foot">Every save is recorded in the student-work repo with your name and what changed, so any
+        mistake can be undone there.</p>
+    </section>
+  </article>
+</main>
+
+<script src="../assets/js/topo.js"></script>
+</body>
+</html>

@@ -82,29 +82,31 @@ export function assemble(found, texts) {
     const sketch = p.files.includes('index.html');
     const embed = sketch || (Array.isArray(meta.media) && meta.media.some(m => m && m.type === 'embed'));
     const { cover, missing } = coverOf(p, meta, found.allFiles);
-    const issues = [];
+    // issues: things to fix ("Needs attention"). tips: nice to add, never required.
+    // A sketch hosted here needs no cover: one is made when it goes on the site.
+    const issues = [], tips = [];
     if (problem) issues.push(problem);
     if (!text(meta.title)) issues.push('No title');
     if (!text(meta.student)) issues.push('No student names');
     if (missing.length) issues.push(`Listed but missing: ${missing.join(', ')}`);
-    if (!cover) issues.push('No cover');
-    if (!text(meta.blurb)) issues.push('No blurb');
-    if (embed && !hasInstructions(meta.instructions)) issues.push('No instructions');
-    if ('consent' in meta || 'draft' in meta) issues.push('Uses the old consent/draft fields');
+    if (!cover && !sketch) issues.push('No cover');
+    if ('consent' in meta || 'draft' in meta) issues.push('Old consent/draft fields: open Edit and save to tidy');
+    if (!text(meta.blurb)) tips.push('a description');
+    if (embed && !hasInstructions(meta.instructions)) tips.push('"Try it" steps');
     out.push({
       ...basics(p),
       status: problem ? 'broken' : meta.show === true ? 'shown' : 'hidden',
       title: text(meta.title) || titleFrom(leafOf(p.path)),
       student: text(meta.student), year: meta.year ?? null, semester: text(meta.semester),
       blurb: text(meta.blurb), instructions: meta.instructions ?? '', links: Array.isArray(meta.links) ? meta.links : [],
-      cover, sketch, embed, issues
+      cover, sketch, embed, issues, tips
     });
   }
   for (const p of found.loose) {
     out.push({
       ...basics(p), status: 'not-set-up', title: titleFrom(leafOf(p.path)),
       student: '', year: null, semester: '', blurb: '', instructions: '', links: [],
-      cover: coverOf(p, {}, found.allFiles).cover, sketch: true, embed: true, issues: ['No project.yml yet']
+      cover: coverOf(p, {}, found.allFiles).cover, sketch: true, embed: true, issues: ['No details yet: press Set up'], tips: []
     });
   }
   out.sort((a, b) => a.path.localeCompare(b.path));

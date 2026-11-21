@@ -30,6 +30,7 @@ window.AdminBatch = (function () {
     clearTimeout(pollTimer);
     b = fresh(context.keep || {});
     render();
+    window.AdminDirty = () => b.rows.length > 0 && !(b.save && b.save.res);   // asked before leaving
     el.scrollIntoView({ block: 'start' });
   }
 
@@ -119,7 +120,7 @@ window.AdminBatch = (function () {
 
   function bind() {
     $('back').addEventListener('click', () => {
-      if (b.rows.length && !(b.save && b.save.res) && !confirm('Leave without publishing? The sketches you added here will be cleared.')) return;
+      if (window.AdminDirty() && !confirm('Leave without publishing? The sketches you added here will be cleared.')) return;
       clearTimeout(pollTimer); ctx.onClose(!!(b.save && b.save.res));
     });
     $('course').addEventListener('change', e => {

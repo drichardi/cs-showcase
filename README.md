@@ -129,11 +129,13 @@ live site ignores the parameter.
 ## Teacher dashboard
 
 `/admin/` (https://drichardi.github.io/cs-showcase/admin/) is where CS teachers manage the
-student work without touching GitHub. Sign in with a Punahou Google account on the
-teacher list; then:
+student work without touching GitHub. The one-page **teacher guide** for using it is
+`/admin/guide.html`, linked from the dashboard. Sign in with a Punahou Google account on
+the teacher list; then:
 
-- **Projects:** every project in `cs-student-work`, shown or hidden, with covers, what each
-  is missing, search, and filters by course, assignment and status.
+- **Projects:** every project in `cs-student-work`, shown or hidden, with covers, search,
+  and filters by course, assignment and status. "Needs attention" finds the ones with
+  something to fix; "Could add" on a card is only a suggestion.
 - **Add project:** pick the course, assignment (or start a new one) and term; drop in the
   p5 editor's zip or a sketch folder, paste a p5 editor / Scratch / CodePen / itch.io link,
   or add pictures; see it running in a preview; fill in title, students, description and
@@ -151,6 +153,10 @@ teacher list; then:
   If a colleague changed the same project in the meantime, the save stops and says so.
 - **Assignments:** filter to one assignment to see and edit its name, description and
   order.
+
+A sign-in lasts 8 hours. If it runs out with the dashboard open, a "Sign in again" box
+covers the page instead of signing out, so a half-filled form isn't lost. Leaving a page
+with unsaved changes (or closing the tab) asks first.
 
 The dashboard's server program is in `admin-api/` (a Cloudflare Worker; its README has
 the setup, the secrets and how to test).

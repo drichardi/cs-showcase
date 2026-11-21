@@ -30,9 +30,9 @@
     if (session) headers.Authorization = 'Bearer ' + session.token;
     let res;
     try { res = await fetch(API + path, { ...options, headers }); }
-    catch (e) { throw { error: 'offline' }; }
+    catch (e) { throw { error: 'offline', message: "The dashboard's server didn't answer. Check your connection and try again." }; }
     const body = await res.json().catch(() => ({}));
-    if (res.status === 401 && path !== '/session') { signOut(); throw { status: 401, ...body }; }
+    if (res.status === 401 && path !== '/session') throw expired(body);
     if (!res.ok) throw { status: res.status, ...body };
     return body;
   }
@@ -40,12 +40,65 @@
   /* A picture from the (private) repo, fetched with the session and handed back
      as a local object URL for an <img>. */
   async function file(path) {
+    if (!session) throw expired({});
     const res = await fetch(API + '/file?path=' + encodeURIComponent(path),
       { headers: { Authorization: 'Bearer ' + session.token } });
-    if (res.status === 401) { signOut(); throw { error: 'signed_out' }; }
+    if (res.status === 401) throw expired({});
     if (!res.ok) throw { status: res.status };
     return URL.createObjectURL(await res.blob());
   }
+
+  /* ---------- when the sign-in runs out ----------
+     A session lasts 8 hours. If it runs out with the dashboard open, a "Sign in
+     again" box covers the page instead of signing out, so a half-filled form isn't
+     lost; after signing in, the teacher presses Publish (or whatever it was) again. */
+  let reauth = null, expiryTimer;
+  function expired(body) {
+    if (root.dataset.state !== 'signed-in') { signOut(); return { status: 401, error: 'signed_out', ...body }; }
+    openReauth();
+    return { status: 401, error: 'signed_out',
+      message: 'Your sign-in ran out. Sign in again in the box on screen, then try that again. Nothing on this page is lost.' };
+  }
+  function watchExpiry() {
+    clearTimeout(expiryTimer);
+    if (session) expiryTimer = setTimeout(openReauth, Math.max(0, session.expires * 1000 - Date.now()));
+  }
+  function openReauth() {
+    if (reauth || root.dataset.state !== 'signed-in') return;
+    reauth = document.createElement('div');
+    reauth.className = 'admin-modal';
+    reauth.innerHTML = `<section class="admin-card" role="dialog" aria-modal="true" aria-labelledby="reauthTitle">
+        <h2 id="reauthTitle">Sign in again</h2>
+        <p>Your sign-in ran out (it lasts 8 hours). Sign in again to carry on. Nothing on this page is lost.</p>
+        <div id="reauthButton" class="admin-google"></div>
+        <p class="admin-note" id="reauthNote" aria-live="polite">${googleLoaded ? '' : 'Loading Google sign-in…'}</p>
+        <button class="btn btn-ghost" id="reauthOut">Sign out instead</button>
+      </section>`;
+    document.body.appendChild(reauth);
+    renderGoogleButton(reauth.querySelector('#reauthButton'));
+    reauth.querySelector('#reauthOut').addEventListener('click', () => {
+      if (unsaved() && !confirm('Sign out and lose what you haven\'t saved on this page?')) return;
+      closeReauth(); signOut();
+    });
+  }
+  function closeReauth() { if (reauth) { reauth.remove(); reauth = null; } }
+  async function finishReauth(response) {
+    reauth.querySelector('#reauthNote').textContent = 'Signing you in…';
+    try {
+      save(await api('/session', { method: 'POST', body: JSON.stringify({ credential: response.credential }) }));
+      closeReauth(); watchExpiry();
+      if (!root.querySelector('.add-head')) show('signed-in');    // on the list: reload it
+    } catch (e) {
+      if (e.error === 'not_on_list' || e.error === 'wrong_domain') { closeReauth(); save(null); return show('refused', e); }
+      reauth.querySelector('#reauthNote').textContent = e.message || 'That didn\'t work. Try again.';
+    }
+  }
+
+  /* ---------- unsaved work ----------
+     The add, edit and class-set pages set window.AdminDirty to say whether they hold
+     changes not yet saved; leaving or closing the tab then asks first. */
+  const unsaved = () => !!(window.AdminDirty && window.AdminDirty());
+  window.addEventListener('beforeunload', e => { if (unsaved()) { e.preventDefault(); e.returnValue = ''; } });
 
   /* ---------- views ---------- */
   const esc = window.esc;
@@ -65,7 +118,8 @@
              Punahou Google account.</p>
           <div id="googleButton" class="admin-google"></div>
           ${googleLoaded ? '' : '<p class="admin-note">Loading Google sign-in…</p>'}
-          <p class="admin-note">Only CS teachers on the dashboard's list can sign in.</p>
+          <p class="admin-note">Only CS teachers on the dashboard's list can sign in.
+            New here? <a href="guide.html">Read the teacher guide</a>.</p>
         </section>`,
       'checking': () => `
         <section class="admin-card"><h1>Teacher dashboard</h1><p>Signing you in…</p></section>`,
@@ -94,22 +148,26 @@
             <h1>Hi, ${esc(session.user.name.split(' ')[0])}</h1>
             <p class="admin-who">${esc(session.user.email)}</p>
           </div>
+          <a class="btn btn-ghost" href="guide.html" target="_blank" rel="noopener">Teacher guide</a>
           <button class="btn btn-ghost" id="signOut">Sign out</button>
         </section>
         <section class="admin-projects" id="projects"></section>`
     }[state]();
 
     if (state === 'signed-out') renderGoogleButton();
-    if (state === 'signed-in') window.AdminProjects.mount(document.getElementById('projects'), { api, file });
+    if (state === 'signed-in') { watchExpiry(); window.AdminProjects.mount(document.getElementById('projects'), { api, file }); }
+    else clearTimeout(expiryTimer);
     const again = document.getElementById('tryAgain');
     if (again) again.addEventListener('click', signOut);
     const out = document.getElementById('signOut');
-    if (out) out.addEventListener('click', signOut);
+    if (out) out.addEventListener('click', () => {
+      if (unsaved() && !confirm('Sign out and lose what you haven\'t saved on this page?')) return;
+      signOut();
+    });
   }
 
   /* ---------- Google ---------- */
-  function renderGoogleButton() {
-    const el = document.getElementById('googleButton');
+  function renderGoogleButton(el = document.getElementById('googleButton')) {
     if (!el || !googleLoaded) return;
     google.accounts.id.renderButton(el, { theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', width: 280 });
   }
@@ -124,9 +182,11 @@
       cancel_on_tap_outside: true
     });
     if (root.dataset.state === 'signed-out') show('signed-out');
+    if (reauth) { reauth.querySelector('#reauthNote').textContent = ''; renderGoogleButton(reauth.querySelector('#reauthButton')); }
   }
 
   async function onCredential(response) {
+    if (reauth) return finishReauth(response);
     show('checking');
     try {
       save(await api('/session', { method: 'POST', body: JSON.stringify({ credential: response.credential }) }));
@@ -138,6 +198,7 @@
   }
 
   function signOut() {
+    window.AdminDirty = null;
     save(null);
     if (googleLoaded) google.accounts.id.disableAutoSelect();
     show('signed-out');

@@ -1,7 +1,7 @@
 /* ============================================================
-   Teacher dashboard. Step 2: every project in the student-work repo,
-   shown or hidden, with search and filters. Read-only for now:
-   adding and editing come in the next steps.
+   Teacher dashboard: every project in the student-work repo, shown or
+   hidden, with search and filters; card buttons to edit, set up, fix, show
+   or hide; and the selected assignment's name and description.
    ============================================================ */
 window.AdminProjects = (function () {
   const esc = window.esc;
@@ -54,6 +54,7 @@ window.AdminProjects = (function () {
   }
 
   function render() {
+    window.AdminDirty = null;          // nothing unsaved on the list itself
     const all = data.projects;
     const count = s => all.filter(p => p.status === s).length;
     const courseSlugs = [...new Set(all.map(p => p.course))].sort((a, b) => courseOrder(a) - courseOrder(b));
@@ -88,7 +89,8 @@ window.AdminProjects = (function () {
           ${Object.entries(STATUS).filter(([s]) => count(s)).map(([s, v]) =>
             `<option value="${s}"${f.status === s ? ' selected' : ''}>${v.label}</option>`).join('')}
         </select>
-        <label class="proj-check"><input type="checkbox" id="attention"${f.attention ? ' checked' : ''}> Needs attention</label>
+        <label class="proj-check" title="Projects with something to fix: no student names, a missing file, no cover for a link…">
+          <input type="checkbox" id="attention"${f.attention ? ' checked' : ''}> Needs attention (${all.filter(p => p.issues.length).length})</label>
       </div>
       ${f.course && f.assignment ? assignmentBar() : ''}
       ${list.length ? `<div class="proj-grid">${list.map(card).join('')}</div>`
@@ -144,6 +146,7 @@ window.AdminProjects = (function () {
         <p class="proj-who">${esc(p.student || 'No student names yet')}</p>
         <p class="proj-where">${esc(where)}</p>
         ${p.issues.length ? `<ul class="proj-issues">${p.issues.map(i => `<li>${esc(i)}</li>`).join('')}</ul>` : ''}
+        ${(p.tips || []).length ? `<p class="proj-tips">Could add: ${esc(p.tips.join(', '))}</p>` : ''}
         <p class="proj-path" title="Folder in the repo">${esc(p.path)}</p>
         ${live}
         <div class="proj-actions" data-path="${esc(p.path)}">
