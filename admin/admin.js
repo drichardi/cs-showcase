@@ -23,6 +23,9 @@
   function save(s) {
     session = s;
     try { s ? sessionStorage.setItem(KEY, JSON.stringify(s)) : sessionStorage.removeItem(KEY); } catch (e) { /* private mode */ }
+    // A note for the public pages (no sign-in details): a teacher is signed in here
+    // until then, so they show a switch back to the dashboard.
+    try { s ? localStorage.setItem('cs-teacher', JSON.stringify({ expires: s.expires })) : localStorage.removeItem('cs-teacher'); } catch (e) { /* blocked */ }
   }
 
   async function api(path, options = {}) {

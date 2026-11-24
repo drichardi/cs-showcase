@@ -64,7 +64,7 @@
           <div><dt>Prerequisite</dt><dd>${esc(c.prereqText)}</dd></div>
           <div><dt>Counts toward</dt><dd>DTE distinction${c.countsAsProgramming ? ' · programming semesters' : ''}</dd></div>
         </dl>
-        ${c.quote && c.quote.text ? `<blockquote class="pull lg${c.quote.placeholder ? ' is-placeholder' : ''}">
+        ${window.showQuote(data, c) ? `<blockquote class="pull lg${c.quote.placeholder ? ' is-placeholder' : ''}">
             ${esc(c.quote.text)}<cite>${esc(c.quote.by || '')}${c.quote.placeholder ? ' · sample quote' : ''}</cite>
           </blockquote>` : ''}
         <ul class="hl">${c.highlights.map(h => `<li>${esc(h)}</li>`).join('')}</ul>
@@ -87,7 +87,7 @@
         </div>
         <div class="side">
           <h4>Plan it</h4>
-          <a class="btn btn-ghost" style="width:100%;justify-content:center" href="index.html#plan">Open route builder</a>
+          <a class="btn btn-ghost" style="width:100%;justify-content:center" href="index.html#plan">Create your plan</a>
         </div>
       </aside>
     </div>`;

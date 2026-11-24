@@ -35,6 +35,7 @@ export function discover(entries) {
   }
   const names = dir => (files.get(dir) || []).map(f => f.name);
   const projects = [], loose = [], shas = new Set(), assignmentYml = new Map();
+  const folders = [];                 // assignment folders (with assignment.yml), even empty ones
   const allFiles = new Set(entries.filter(e => e.type === 'blob').map(e => e.path));
 
   function walk(dir, course, depth) {
@@ -42,6 +43,8 @@ export function discover(entries) {
       const leaf = sub.slice(sub.lastIndexOf('/') + 1);
       if (leaf.startsWith('.') || SKIP.has(leaf)) continue;
       const here = files.get(sub) || [];
+      const yml = depth === 0 && here.find(f => f.name === 'assignment.yml');
+      if (yml) { folders.push({ course, id: leaf }); assignmentYml.set(sub, yml.sha); shas.add(yml.sha); }
       const meta = META.map(m => here.find(f => f.name === m)).find(Boolean);
       if (meta) {
         projects.push({ path: sub, course, meta: meta.name, sha: meta.sha, files: names(sub) });
@@ -63,7 +66,7 @@ export function discover(entries) {
     const yml = a && (files.get(`${p.course}/${a}`) || []).find(f => f.name === 'assignment.yml');
     if (yml) { assignmentYml.set(`${p.course}/${a}`, yml.sha); shas.add(yml.sha); }
   }
-  return { projects, loose, shas, assignmentYml, allFiles };
+  return { projects, loose, shas, assignmentYml, allFiles, folders };
 }
 
 /* Turn the found folders and their yml texts into what the dashboard shows. */
@@ -111,18 +114,23 @@ export function assemble(found, texts) {
   }
   out.sort((a, b) => a.path.localeCompare(b.path));
 
-  // Each course's assignments, named like the site names them.
+  // Each course's assignments, named like the site names them: those with projects,
+  // and new ones that have only their assignment.yml so far (count 0).
   const assignments = {};
-  for (const p of out) {
-    if (!p.assignment) continue;
-    const list = assignments[p.course] || (assignments[p.course] = []);
-    if (list.some(a => a.id === p.assignment)) continue;
-    let info = {};
-    const sha = found.assignmentYml.get(`${p.course}/${p.assignment}`);
-    try { info = (sha && parse(texts.get(sha) ?? '')) || {}; } catch (e) { info = {}; }
-    list.push({ id: p.assignment, title: text(info.title) || titleFrom(p.assignment), blurb: text(info.blurb),
-      order: info.order ?? null, ymlSha: sha || null });
-  }
+  const named = (course, id) => {
+    const list = assignments[course] || (assignments[course] = []);
+    let a = list.find(x => x.id === id);
+    if (!a) {
+      let info = {};
+      const sha = found.assignmentYml.get(`${course}/${id}`);
+      try { info = (sha && parse(texts.get(sha) ?? '')) || {}; } catch (e) { info = {}; }
+      a = { id, title: text(info.title) || titleFrom(id), blurb: text(info.blurb), order: info.order ?? null, ymlSha: sha || null, count: 0 };
+      list.push(a);
+    }
+    return a;
+  };
+  for (const p of out) if (p.assignment) named(p.course, p.assignment).count++;
+  for (const f of found.folders || []) named(f.course, f.id);
   return { projects: out, assignments };
 }
 

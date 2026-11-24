@@ -39,6 +39,8 @@ file('data-structures-algorithms/lanai/project.yml',
 file('data-structures-algorithms/lanai/shot.png');
 // A broken project.yml
 file('ap-csp/broken/project.yml', 'title: [unclosed\n');
+// A new assignment with nothing in it yet
+file('ap-csp/networks/assignment.yml', 'title: How the Internet Works\nblurb: Packets and routes.\n');
 // Folders the builder never looks in, and one too deep
 file('scripts/x/project.yml', 'show: true\n');
 file('.github/y/project.yml', 'show: true\n');
@@ -104,7 +106,7 @@ test('a project.yml with a mistake is reported, not fatal', () => {
 test('assignments get their title from assignment.yml or the folder', () => {
   const intro = assignments['intro-programming'];
   const tiling = intro.find(a => a.id === 'tiling');
-  assert.deepEqual({ ...tiling, ymlSha: undefined }, { id: 'tiling', title: 'Tiling Patterns', blurb: 'Repeat a tile.', order: 2, ymlSha: undefined });
+  assert.deepEqual({ ...tiling, ymlSha: undefined }, { id: 'tiling', title: 'Tiling Patterns', blurb: 'Repeat a tile.', order: 2, ymlSha: undefined, count: 2 });
   assert.ok(tiling.ymlSha, 'the assignment.yml version, for safe editing');
   assert.equal(intro.find(a => a.id === 'a').title, 'A');
 });
@@ -112,4 +114,13 @@ test('assignments get their title from assignment.yml or the folder', () => {
 test('assignmentOf matches the builder', () => {
   assert.equal(assignmentOf('intro-programming/tiling/x'), 'tiling');
   assert.equal(assignmentOf('data-structures-algorithms/lanai'), '');
+});
+
+test('an assignment with no work yet is still listed, with a count of 0', () => {
+  const net = (assignments['ap-csp'] || []).find(a => a.id === 'networks');
+  assert.ok(net, 'listed');
+  assert.equal(net.title, 'How the Internet Works');
+  assert.equal(net.count, 0);
+  assert.ok(net.ymlSha);
+  assert.ok(!projects.some(p => p.path.startsWith('ap-csp/networks')), 'and it is not a project');
 });

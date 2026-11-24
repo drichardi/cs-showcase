@@ -105,7 +105,14 @@ export function validateMeta(m) {
   }
   const show = m.show === true;
   if (show && m.consent !== true) throw bad('consent', 'Tick the box confirming the students agreed to have this shown, or leave it hidden.');
-  return { title, students, year, semester, blurb, instructions, links, show };
+  // On the site: playable there or not; the code link ('' automatic, 'none', or an
+  // address); and an optional "See it in action" address.
+  const play = m.play !== false;
+  const code = m.code === false || str(m.code) === 'none' ? 'none' : str(m.code);
+  if (code && code !== 'none' && (!/^https?:\/\/[^\s]+$/i.test(code) || code.length > 500)) throw bad('code', 'The code link needs a full web address (https://…).');
+  const live = str(m.live);
+  if (live && (!/^https?:\/\/[^\s]+$/i.test(live) || live.length > 500)) throw bad('live', 'The "See it in action" link needs a full web address (https://…).');
+  return { title, students, year, semester, blurb, instructions, links, show, play, code, live };
 }
 
 export function validateEmbed(e) {
@@ -174,6 +181,10 @@ export function projectYaml(v, pictures) {
   if (v.meta.instructions.length === 1) doc.instructions = v.meta.instructions[0];
   else if (v.meta.instructions.length) doc.instructions = v.meta.instructions;
   if (v.meta.links.length) doc.links = v.meta.links;
+  if (v.meta.play === false) doc.play = false;
+  if (v.meta.code === 'none') doc.code = false;
+  else if (v.meta.code) doc.code = v.meta.code;
+  if (v.meta.live) doc.live = v.meta.live;
   if (v.kind === 'link') {
     // Listing media turns off the builder's own picture search, so list the pictures too.
     doc.media = [...pictures, { type: 'embed', src: v.embed.src, ...(v.embed.size ? { size: v.embed.size } : {}) }];

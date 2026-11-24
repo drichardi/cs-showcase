@@ -16,20 +16,24 @@
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="index.html"><span class="dot"></span> Computer Science</a>
-    <nav>
-      <a href="index.html#map" aria-current="page">Courses</a>
-      <a href="index.html#plan">Plan a route</a>
+    <nav aria-label="Site">
+      <a href="index.html" data-tab="work">Home</a>
+      <div class="menu">
+        <button type="button" class="menu-btn" aria-expanded="false" aria-controls="menuCourses" data-current>Courses</button>
+        <div class="menu-list" id="menuCourses" hidden data-course-menu><a href="index.html#map">See all on the course map</a></div>
+      </div>
+      <div class="menu">
+        <button type="button" class="menu-btn" aria-expanded="false" aria-controls="menuPlan" data-tab-group="map plan">Course planning</button>
+        <div class="menu-list" id="menuPlan" hidden>
+          <a href="index.html#map" data-tab="map">View course map</a>
+          <a href="index.html#plan" data-tab="plan">Create your plan</a>
+        </div>
+      </div>
       <span class="ctl"></span>
     </nav>
   </div>
 </header>
 
-<div class="fb">
-  <div class="wrap">
-    <b>Reviewing three designs.</b> Same site, three visual directions — switch and tell us which reads best.
-    <span class="pick"></span>
-  </div>
-</div>
 
 <main id="courseRoot"></main>
 

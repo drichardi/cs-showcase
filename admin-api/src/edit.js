@@ -8,7 +8,7 @@ import { parse, parseDocument, stringify } from 'yaml';
 import { gh } from './github.js';
 import { HttpError } from './http.js';
 import {
-  validateMeta, validateEmbed, validateCover, cleanFiles, isText, joinNames, projectYaml, saveCommit, PICTURE
+  validateMeta, validateEmbed, validateCover, cleanFiles, isText, joinNames, projectYaml, saveCommit, listDir, slugify, PICTURE
 } from './write.js';
 import { assignmentOf } from './projects.js';
 
@@ -80,7 +80,10 @@ export async function readProject(env, rawPath) {
       show: m.show === true, blurb: str(m.blurb == null ? '' : String(m.blurb)),
       instructions: list(m.instructions),
       links: (Array.isArray(m.links) ? m.links : []).filter(l => l && typeof l === 'object')
-        .map(l => ({ label: str(String(l.label ?? '')), url: str(String(l.url ?? '')) }))
+        .map(l => ({ label: str(String(l.label ?? '')), url: str(String(l.url ?? '')) })),
+      play: m.play !== false,
+      code: m.code === false || m.code === 'none' ? 'none' : typeof m.code === 'string' ? str(m.code) : '',
+      live: typeof m.live === 'string' ? str(m.live) : ''
     },
     embed: embed ? { src: str(embed.src), size: str(embed.size == null ? '' : String(embed.size)) } : null,
     files: s.files.map(f => ({ path: f.path, size: f.size })),
@@ -103,6 +106,9 @@ export function updatedYaml(text, meta, { kind, embed, pictures, replaced }) {
   put('blurb', meta.blurb);
   put('instructions', meta.instructions.length === 1 ? meta.instructions[0] : meta.instructions);
   put('links', meta.links);
+  meta.play === false ? doc.set('play', false) : doc.delete('play');
+  meta.code === 'none' ? doc.set('code', false) : put('code', meta.code);
+  put('live', meta.live);
   doc.delete('consent');            // replaced by show
   doc.delete('draft');
   if (kind === 'link') doc.set('media', [...pictures, { type: 'embed', src: embed.src, ...(embed.size ? { size: embed.size } : {}) }]);
@@ -198,6 +204,7 @@ export async function updateProject(request, env, user) {
 /* ---------- POST /assignment ---------- */
 export async function saveAssignment(request, env, user) {
   const body = await request.json().catch(() => null) || {};
+  if (body.create === true) return createAssignment(body, env, user);
   const course = str(body.course), id = str(body.id);
   if (!SLUG.test(course) || !SLUG.test(id)) throw bad('assignment', "That isn't an assignment folder.");
   const title = str(body.title), blurb = str(body.blurb);
@@ -240,4 +247,35 @@ export async function saveAssignment(request, env, user) {
     message: `Update assignment: ${title} (${course})\n\nEdited with the CS teacher dashboard by ${user.name} <${user.email}>.`
   });
   return { course, id, commit: commit.sha, branch: env.GITHUB_BRANCH, published: env.GITHUB_BRANCH === 'main' };
+}
+
+/* A new assignment on its own, before any work is added: just its assignment.yml
+   (title, description, order) in a new folder in the course. */
+async function createAssignment(body, env, user) {
+  const course = str(body.course), title = str(body.title), blurb = str(body.blurb);
+  if (!SLUG.test(course)) throw bad('course', 'Pick a course.');
+  if (!title) throw bad('title', 'Give the assignment a name.');
+  if (title.length > 60) throw bad('title', 'Keep the name under 60 characters.');
+  if (blurb.length > 300) throw bad('blurb', 'Keep the description under 300 characters.');
+  const order = body.order === '' || body.order == null ? null : Number(body.order);
+  if (order !== null && !Number.isInteger(order)) throw bad('order', 'The order should be a whole number.');
+  const id = slugify(title, 40);
+  if (!id) throw bad('title', 'Give the assignment a name with some letters or numbers in it.');
+
+  const head = (await gh(env, `/git/ref/heads/${encodeURIComponent(env.GITHUB_BRANCH)}`, write)).object.sha;
+  const courseList = await listDir(env, course, head);
+  if (!courseList) throw bad('course', "That course doesn't have a folder in the repo yet.");
+  if (courseList.includes(id)) {
+    throw new HttpError(409, 'exists', `This course already has a folder called "${id}". If it's an assignment, pick it from the list and edit it there.`);
+  }
+  const doc = { title };
+  if (blurb) doc.blurb = blurb;
+  if (order !== null) doc.order = order;
+  const commit = await saveCommit(env, {
+    parent: head, user,
+    entries: [{ path: `${course}/${id}/assignment.yml`, mode: '100644', type: 'blob',
+      content: '# Added with the CS teacher dashboard.\n' + stringify(doc, { lineWidth: 0 }) }],
+    message: `Add assignment: ${title} (${course})\n\nAdded with the CS teacher dashboard by ${user.name} <${user.email}>.`
+  });
+  return { course, id, created: true, commit: commit.sha, branch: env.GITHUB_BRANCH, published: env.GITHUB_BRANCH === 'main' };
 }

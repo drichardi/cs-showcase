@@ -88,3 +88,12 @@ test('awkward text survives the round trip', () => {
   assert.equal(y.title, 'Yes: no');
   assert.equal(y.blurb, tricky);
 });
+
+test('project.yml carries play, code and live only when they differ from the default', () => {
+  const plain = parse(projectYaml(validate(good()), []));
+  assert.ok(!('play' in plain) && !('code' in plain) && !('live' in plain));
+  const set = parse(projectYaml(validate(good({ meta: { ...good().meta, play: false, code: 'none', live: 'https://x.itch.io/g' } })), []));
+  assert.equal(set.play, false);
+  assert.equal(set.code, false);
+  assert.equal(set.live, 'https://x.itch.io/g');
+});

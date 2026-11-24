@@ -6,7 +6,7 @@ window.CSMap = (function () {
 
   function quoteBlock(c) {
     const q = c.quote;
-    if (!q || !q.text) return '';
+    if (!window.showQuote(data, c)) return '';
     return `<blockquote class="pull${q.placeholder ? ' is-placeholder' : ''}">
       ${esc(q.text)}<cite>${esc(q.by || '')}${q.placeholder ? ' · sample' : ''}</cite></blockquote>`;
   }

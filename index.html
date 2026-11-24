@@ -17,20 +17,24 @@
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="index.html"><span class="dot"></span> Computer Science</a>
-    <nav>
-      <a href="#map" data-tab="map">Courses</a>
-      <a href="#plan" data-tab="plan">Plan a route</a>
+    <nav aria-label="Site">
+      <a href="index.html" data-tab="work">Home</a>
+      <div class="menu">
+        <button type="button" class="menu-btn" aria-expanded="false" aria-controls="menuCourses">Courses</button>
+        <div class="menu-list" id="menuCourses" hidden data-course-menu><a href="index.html#map">See all on the course map</a></div>
+      </div>
+      <div class="menu">
+        <button type="button" class="menu-btn" aria-expanded="false" aria-controls="menuPlan" data-tab-group="map plan">Course planning</button>
+        <div class="menu-list" id="menuPlan" hidden>
+          <a href="index.html#map" data-tab="map">View course map</a>
+          <a href="index.html#plan" data-tab="plan">Create your plan</a>
+        </div>
+      </div>
       <span class="ctl"></span>
     </nav>
   </div>
 </header>
 
-<div class="fb">
-  <div class="wrap">
-    <b>Reviewing three designs.</b> Same site, three visual directions — switch and tell us which reads best.
-    <span class="pick"></span>
-  </div>
-</div>
 
 <main id="top">
   <!-- Three views, one per tab. app.js shows one at a time from the URL hash
@@ -41,19 +45,13 @@
   <div class="view" data-view="work">
     <section class="work-sec">
       <div class="wrap">
+        <h1 class="sr-only">Student work</h1>
         <div class="theater">
-          <div class="sec-head work-head">
-            <div>
-              <h1 class="work-title">What students make</h1>
-              <p>Everything here was made by students in Punahou's computer science courses. Pick any project below to open it here.</p>
-            </div>
-          </div>
           <div class="stage-host" id="stage"></div>
         </div>
 
         <div class="rows-head" id="rowsHead" hidden>
           <h2>More student work</h2>
-          <button class="btn btn-ghost" id="btnReshuffle">Shuffle ↻</button>
         </div>
         <div class="work-rows" id="rows"></div>
       </div>
@@ -67,7 +65,7 @@
         <h1>Eight courses. Many ways through.</h1>
         <p class="lede">Start with no experience at all, or place past the first tier. Seven semesters earns the DTE distinction. See what each course covers, what students built in it, and plan your own route.</p>
         <div class="hero-cta">
-          <a class="btn btn-primary" href="#plan">Plan your route →</a>
+          <a class="btn btn-primary" href="#plan">Create your plan →</a>
           <a class="btn btn-ghost" href="#work">See student work</a>
         </div>
         <div class="hero-stats">
@@ -94,8 +92,8 @@
     <section class="plan-sec">
       <div class="wrap">
         <div class="sec-head"><div>
-          <h2>Build a hypothetical four years</h2>
-          <p>The planner checks prerequisites, counts semesters, and shows what your route never touches.</p>
+          <h2>Explore pathway options</h2>
+          <p>Click each semester to add available classes and build your plan.</p>
         </div></div>
         <div class="planner">
           <div class="panel">

@@ -12,6 +12,7 @@ window.AdminProjects = (function () {
     'broken':     { label: 'Needs fixing', order: 0 }
   };
   let el, io, data = null, courses = [], f = { q: '', course: '', assignment: '', status: '', attention: false };
+  let creating = false;              // the "New assignment" form is open
   const thumbs = new Map();          // repo path -> object URL, kept across re-renders
 
   async function mount(host, api) {
@@ -70,6 +71,7 @@ window.AdminProjects = (function () {
             count('not-set-up') ? ` · ${count('not-set-up')} need details` : ''}${count('broken') ? ` · ${count('broken')} need fixing` : ''}</p>
         </div>
         <button class="btn btn-ghost" id="refresh" title="Load the latest from the repo">Refresh</button>
+        <button class="btn btn-ghost" id="newAssignment" title="Set up an assignment before adding its work">New assignment</button>
         <button class="btn btn-ghost" id="addSeveral" title="A class set: many sketches at once">Add several</button>
         <button class="btn btn-primary" id="addProject">Add project</button>
       </div>
@@ -92,9 +94,14 @@ window.AdminProjects = (function () {
         <label class="proj-check" title="Projects with something to fix: no student names, a missing file, no cover for a link…">
           <input type="checkbox" id="attention"${f.attention ? ' checked' : ''}> Needs attention (${all.filter(p => p.issues.length).length})</label>
       </div>
+      ${creating ? newAssignmentForm() : ''}
       ${f.course && f.assignment ? assignmentBar() : ''}
       ${list.length ? `<div class="proj-grid">${list.map(card).join('')}</div>`
-        : `<div class="empty-work">No projects match. <a href="#" id="clear">Clear the filters</a></div>`}`;
+        : f.course && f.assignment && !f.q && !f.status && !f.attention && currentAssignment()
+          ? `<div class="empty-work">No work in this assignment yet.
+              <p class="proj-empty-go"><button class="btn btn-primary" id="emptyAdd">Add project</button>
+              <button class="btn btn-ghost" id="emptySeveral">Add several</button></p></div>`
+          : `<div class="empty-work">No projects match. <a href="#" id="clear">Clear the filters</a></div>`}`;
 
     const on = (id, ev, fn) => { const x = el.querySelector('#' + id); if (x) x.addEventListener(ev, fn); };
     on('q', 'input', e => { f.q = e.target.value; rerender('q'); });
@@ -104,16 +111,17 @@ window.AdminProjects = (function () {
     on('attention', 'change', e => { f.attention = e.target.checked; render(); });
     on('clear', 'click', e => { e.preventDefault(); f = { q: '', course: '', assignment: '', status: '', attention: false }; render(); });
     on('refresh', 'click', () => mount(el, mount.api));
-    on('addProject', 'click', () => window.AdminAdd.open(el, {
+    const opener = page => () => page.open(el, {
       api: mount.api, data, courses,
       keep: f.course ? { course: f.course, assignment: f.assignment } : {},
       onClose: changed => changed ? mount(el, mount.api) : render()
-    }));
-    on('addSeveral', 'click', () => window.AdminBatch.open(el, {
-      api: mount.api, data, courses,
-      keep: f.course ? { course: f.course, assignment: f.assignment } : {},
-      onClose: changed => changed ? mount(el, mount.api) : render()
-    }));
+    });
+    on('addProject', 'click', opener(window.AdminAdd));
+    on('addSeveral', 'click', opener(window.AdminBatch));
+    on('emptyAdd', 'click', opener(window.AdminAdd));
+    on('emptySeveral', 'click', opener(window.AdminBatch));
+    on('newAssignment', 'click', () => { creating = true; render(); el.querySelector('#naCourse').focus(); });
+    bindNewAssignment();
     const grid = el.querySelector('.proj-grid');
     if (grid) grid.addEventListener('click', onCardAction);
     bindAssignment();
@@ -158,6 +166,45 @@ window.AdminProjects = (function () {
         </div>
       </div>
     </article>`;
+  }
+
+  /* ---------- a new assignment, before any work is added ---------- */
+  function newAssignmentForm() {
+    return `<div class="proj-assign" id="newAssignBar">
+      <div style="flex:1 1 100%"><p class="mono">New assignment</p>
+        <p>Sets it up in the course, ready for work to be added. It shows on the site once it has work that's shown.</p></div>
+      <label>Course <select id="naCourse">${courses.map(c =>
+        `<option value="${esc(c.slug)}"${(f.course || '') === c.slug ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>
+      <label>Name <input id="naTitle" maxlength="60" placeholder="Generative Art"></label>
+      <label>Description <span class="opt">shown on the course page above its projects</span>
+        <textarea id="naBlurb" rows="2" maxlength="300" placeholder="Make a piece of art that changes every time it runs."></textarea></label>
+      <label class="proj-order">Order <span class="opt">optional: 1 shows first</span>
+        <input id="naOrder" type="number" min="0" max="99"></label>
+      <p class="proj-assign-go"><button class="btn btn-primary" id="naSave">Create assignment</button>
+        <button class="btn btn-ghost" id="naCancel">Cancel</button> <span id="naMsg" aria-live="polite"></span></p>
+    </div>`;
+  }
+  function bindNewAssignment() {
+    const bar = el.querySelector('#newAssignBar');
+    if (!bar) return;
+    bar.querySelector('#naCancel').addEventListener('click', () => { creating = false; render(); });
+    const save = bar.querySelector('#naSave'), msg = bar.querySelector('#naMsg');
+    save.addEventListener('click', async () => {
+      const course = bar.querySelector('#naCourse').value, title = bar.querySelector('#naTitle').value.trim();
+      if (!title) { msg.textContent = 'Give the assignment a name.'; bar.querySelector('#naTitle').focus(); return; }
+      save.disabled = true; msg.textContent = 'Saving…';
+      try {
+        const res = await mount.api.api('/assignment', { method: 'POST', body: JSON.stringify({
+          create: true, course, title, blurb: bar.querySelector('#naBlurb').value, order: bar.querySelector('#naOrder').value
+        }) });
+        creating = false;
+        f = { q: '', course: res.course, assignment: res.id, status: '', attention: false };
+        mount(el, mount.api);          // reloads the list, showing the new (empty) assignment
+      } catch (e) {
+        msg.textContent = e.message || "Couldn't save. Try again.";
+        save.disabled = false;
+      }
+    });
   }
 
   /* ---------- the selected assignment: its name and description, editable ---------- */

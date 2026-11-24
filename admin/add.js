@@ -24,6 +24,7 @@ window.AdminAdd = (function () {
       kind: 'sketch', files: [], sketchName: '', canvas: '', workError: '',
       link: { url: '', size: '' }, pictures: [], mediaCover: '', coverMode: 'auto', coverFile: null,
       title: '', students: [], blurb: '', instructions: '', links: [],
+      play: true, codeMode: '', codeUrl: '', live: '',      // "On the site"
       show: false, consent: false, folder: '', folderEdited: false, save: null
     };
   }
@@ -46,7 +47,7 @@ window.AdminAdd = (function () {
 
   const snapshot = () => JSON.stringify([d.course, d.assignment, d.newAssignment, d.semester, d.year, d.kind, d.files.length,
     d.sketchName, d.link, d.pictures.map(p => p.path), d.mediaCover, d.coverMode, !!d.coverFile, d.title, d.students, d.blurb,
-    d.instructions, d.links, d.show, d.consent, d.folder, d.replacing]);
+    d.instructions, d.links, d.play, d.codeMode, d.codeUrl, d.live, d.show, d.consent, d.folder, d.replacing]);
 
   function fromProject(p) {
     return Object.assign(fresh(), {
@@ -54,6 +55,8 @@ window.AdminAdd = (function () {
       semester: p.meta.semester || (p.ymlSha ? '' : fresh().semester), year: p.meta.year || (p.ymlSha ? '' : fresh().year),
       title: p.meta.title, students: p.meta.students.length ? p.meta.students.slice() : guessStudents(p),
       blurb: p.meta.blurb, instructions: p.meta.instructions.join('\n'), links: p.meta.links.map(l => ({ ...l })),
+      play: p.meta.play !== false, live: p.meta.live || '',
+      codeMode: p.meta.code === 'none' ? 'none' : p.meta.code ? 'url' : '', codeUrl: p.meta.code && p.meta.code !== 'none' ? p.meta.code : '',
       show: p.meta.show, consent: p.meta.show,           // already shown: consent was given when it went up
       link: p.embed ? { url: p.embed.src, size: p.embed.size } : { url: '', size: '' },
       coverMode: p.cover ? 'keep' : p.kind === 'sketch' ? 'auto' : 'upload', replacing: false
@@ -138,10 +141,11 @@ window.AdminAdd = (function () {
           <textarea id="blurb" maxlength="400" rows="2" placeholder="2D gears turn in the background while 3D shapes spin in the foreground.">${esc(d.blurb)}</textarea>
           <span class="hint" id="blurbCount"></span>
         </label>
-        <label>How to use it <span class="opt">optional, one step per line. Shown as "Try it" beside the project.</span>
+        <label id="howLabel">How to use it <span class="opt">optional, one step per line. Shown as "Try it" beside the project.</span>
           <textarea id="instructions" rows="3" placeholder="Move the mouse to steer&#10;Click to jump">${esc(d.instructions)}</textarea>
         </label>
         <div class="add-links" id="links"></div>
+        <div class="add-onsite" id="onsite"></div>
       </section>
 
       <section class="add-sec" id="secPublish">
@@ -167,7 +171,7 @@ window.AdminAdd = (function () {
       </section>`;
 
     bind();
-    renderWork(); renderLinks(); renderCover(); updateDerived();
+    renderWork(); renderLinks(); renderOnsite(); renderCover(); updateDerived();
   }
 
   function assignmentOptions() {
@@ -197,7 +201,7 @@ window.AdminAdd = (function () {
     el.querySelectorAll('[data-kind]').forEach(b => b.addEventListener('click', () => {
       d.kind = b.dataset.kind;
       el.querySelectorAll('[data-kind]').forEach(x => x.setAttribute('aria-checked', x === b));
-      renderWork(); renderCover(); updateDerived();
+      renderWork(); renderOnsite(); renderCover(); updateDerived();
     }));
     $('title').addEventListener('input', e => { d.title = e.target.value; updateDerived(); });
     const si = $('studentInput');
@@ -245,7 +249,7 @@ window.AdminAdd = (function () {
 
   /* ---------- links ---------- */
   function renderLinks() {
-    $('links').innerHTML = `<p class="add-label">Links <span class="opt">optional: source code, a write-up, a video</span></p>` +
+    $('links').innerHTML = `<p class="add-label">Links <span class="opt">optional: a write-up, a video, slides</span></p>` +
       d.links.map((l, i) => `<div class="add-link">
         <input data-l="${i}" data-k="label" maxlength="40" placeholder="Label" value="${esc(l.label)}">
         <input data-l="${i}" data-k="url" placeholder="https://…" value="${esc(l.url)}">
@@ -258,6 +262,41 @@ window.AdminAdd = (function () {
     const add = $('addLink');
     if (add) add.addEventListener('click', () => { d.links.push({ label: '', url: '' }); renderLinks(); });
   }
+
+  /* ---------- on the site: playable here, the code link, "See it in action" ---------- */
+  function renderOnsite() {
+    const box = $('onsite');
+    const canPlay = d.kind !== 'media';
+    const auto = d.kind === 'sketch' ? "Automatic: the sketch's own code"
+      : d.kind === 'link' ? 'Automatic: the p5 editor, for a p5 editor link' : 'Automatic: none';
+    box.innerHTML = `<p class="add-label">On the site</p>
+      ${canPlay ? `<label class="add-check"><input type="checkbox" id="play"${d.play ? ' checked' : ''}> Visitors can play it here</label>
+        <p class="hint" style="margin:-4px 0 12px 24px">${d.play ? 'With a Play button and the "Try it" steps.'
+          : 'Shown as its cover, with the links below. No Play button or "Try it" steps.'}</p>` : ''}
+      <label>Code link <span class="opt">"View code" beside the project</span>
+        <span class="add-code">
+          <select id="codeMode">
+            <option value=""${d.codeMode === '' ? ' selected' : ''}>${auto}</option>
+            <option value="url"${d.codeMode === 'url' ? ' selected' : ''}>Link to…</option>
+            <option value="none"${d.codeMode === 'none' ? ' selected' : ''}>No code link</option>
+          </select>
+          ${d.codeMode === 'url' ? `<input id="codeUrl" value="${esc(d.codeUrl)}" placeholder="https://github.com/… or https://editor.p5js.org/…" aria-label="Code link address">` : ''}
+        </span></label>
+      <label>See it in action <span class="opt">optional: a page where it runs, like itch.io or the p5 editor</span>
+        <input id="liveUrl" value="${esc(d.live)}" placeholder="https://…"></label>`;
+    const play = $('play');
+    if (play) play.addEventListener('change', e => { d.play = e.target.checked; renderOnsite(); updateDerived(); });
+    $('codeMode').addEventListener('change', e => { d.codeMode = e.target.value; renderOnsite(); updateDerived(); if ($('codeUrl')) $('codeUrl').focus(); });
+    if ($('codeUrl')) $('codeUrl').addEventListener('input', e => { d.codeUrl = e.target.value; updateDerived(); });
+    $('liveUrl').addEventListener('input', e => { d.live = e.target.value; updateDerived(); });
+    // The "Try it" steps only show on a playable project.
+    $('howLabel').classList.toggle('add-dim', canPlay && !d.play);
+  }
+  const onsiteMeta = () => ({
+    play: d.kind === 'media' ? true : d.play,
+    code: d.codeMode === 'none' ? 'none' : d.codeMode === 'url' ? d.codeUrl.trim() : '',
+    live: d.live.trim()
+  });
 
   /* ---------- the work ---------- */
   function renderWork() {
@@ -567,6 +606,8 @@ window.AdminAdd = (function () {
     if (!d.title.trim()) p.push('Add a title');
     if (!d.students.length) p.push('Add the student(s)');
     if (d.links.some(l => (l.label || l.url) && (!l.label.trim() || !/^https?:\/\/\S+$/i.test(l.url.trim())))) p.push('Finish or remove the half-filled link');
+    if (d.codeMode === 'url' && !/^https?:\/\/\S+$/i.test(d.codeUrl.trim())) p.push('Add the code link (https://…), or pick Automatic');
+    if (d.live.trim() && !/^https?:\/\/\S+$/i.test(d.live.trim())) p.push('Write the "See it in action" link as a full address (https://…)');
     if (d.show && !d.consent) p.push('Confirm the students agreed, or untick "Show it on the site"');
     if (d.folderEdited && !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(d.folder)) p.push('Fix the folder name (lowercase letters, numbers and dashes)');
     return p;
@@ -578,7 +619,7 @@ window.AdminAdd = (function () {
       : (d.coverMode === 'keep' || d.kind === 'media') && d.currentCoverUrl ? d.currentCoverUrl : '';
     const term = [d.semester ? d.semester[0].toUpperCase() + d.semester.slice(1) : '', d.year].filter(Boolean).join(' ');
     const by = [joinNames(d.students) || 'Student names', assignmentTitle(), term].filter(Boolean).join(' · ');
-    const playable = d.kind !== 'media';
+    const playable = d.kind !== 'media' && d.play;
     $('cardPreview').innerHTML = `<article class="work-card">
       <div class="work-thumb">${cover ? `<img class="work-media" src="${cover}" alt="">`
         : `<span class="work-media work-media-blank"><span>${esc(d.title || 'Title')}</span></span>`}
@@ -621,7 +662,7 @@ window.AdminAdd = (function () {
         title: d.title.trim(), students: d.students, year: d.year || null, semester: d.semester,
         blurb: d.blurb.trim(), instructions: d.instructions.split('\n').map(s => s.trim()).filter(Boolean),
         links: d.links.filter(l => l.label.trim() || l.url.trim()).map(l => ({ label: l.label.trim(), url: l.url.trim() })),
-        show: d.show, consent: d.consent
+        show: d.show, consent: d.consent, ...onsiteMeta()
       },
       files: []
     };
@@ -648,7 +689,7 @@ window.AdminAdd = (function () {
         title: d.title.trim(), students: d.students, year: d.year || null, semester: d.semester,
         blurb: d.blurb.trim(), instructions: d.instructions.split('\n').map(s => s.trim()).filter(Boolean),
         links: d.links.filter(l => l.label.trim() || l.url.trim()).map(l => ({ label: l.label.trim(), url: l.url.trim() })),
-        show: d.show, consent: d.consent
+        show: d.show, consent: d.consent, ...onsiteMeta()
       }
     };
     if (d.kind === 'link') body.embed = { src: embedFor(d.link.url).src, size: d.link.size };

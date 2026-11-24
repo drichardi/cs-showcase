@@ -19,7 +19,6 @@
   <div class="wrap">
     <a class="brand" href="../index.html"><span class="dot"></span> Computer Science</a>
     <nav>
-      <a href="./">Teacher dashboard</a>
       <span class="ctl"></span>
     </nav>
   </div>
@@ -59,6 +58,8 @@
         dashboard's list can get in; ask a colleague who manages it to add you.</p>
       <p>A sign-in lasts 8 hours in that browser tab. If it runs out while you're working, a "Sign in again" box
         appears over the page. Sign in there and carry on; nothing you've typed is lost.</p>
+      <p>Once you've signed in, a <b>Public site | Dashboard</b> switch at the top of every page takes you between
+        the showcase as visitors see it and the dashboard.</p>
     </section>
 
     <section id="add">
@@ -77,7 +78,16 @@
         </li>
         <li><b>Details:</b> a title, the student(s) (press Enter after each name), a sentence or two on what it is,
           and optional <b>"How to use it"</b> steps, one per line, like <i>Click to jump</i>. Those show as
-          "Try it" beside the project. Links to the code or a write-up are optional too.</li>
+          "Try it" beside the project. Links to a write-up or a video are optional too.
+          <br><b>On the site</b> sets three things, all optional:
+          <ul>
+            <li><b>Visitors can play it here</b> (on by default). Untick it to show just the cover and links, with no
+              Play button or "Try it" steps.</li>
+            <li><b>Code link:</b> "View code" goes to the sketch's own code, or the p5 editor for a p5 editor link.
+              Choose "Link to…" for somewhere else, like GitHub, or "No code link".</li>
+            <li><b>See it in action:</b> a page where the project runs, like itch.io.</li>
+          </ul>
+        </li>
         <li><b>Publish:</b> choose the cover (a sketch gets a screenshot automatically; for a link, upload a
           picture), tick "Show it on the site" if the student agreed, and press <b>Publish</b>. The list under the
           button says what's still missing.</li>
@@ -115,9 +125,10 @@
         <dt>Fix</dt><dd>Its details file has a mistake (usually from editing by hand). Saving the form writes a
           fresh one.</dd>
       </dl>
-      <p><b>Assignments:</b> choose a course and an assignment above the list to see its name and description,
-        then <b>Edit assignment</b>. The description shows on the course page above its projects; "Order" decides
-        which assignment comes first.</p>
+      <p><b>Assignments:</b> press <b>New assignment</b> to set one up before any work is added: its course, name,
+        description and order. It appears on the site once it has work that's shown. To change one, choose a
+        course and an assignment above the list, then <b>Edit assignment</b>. The description shows on the course
+        page above its projects; "Order" decides which assignment comes first.</p>
       <p>Removing a project for good isn't in the dashboard yet. Hide it, and ask a colleague who manages the
         repo if it really must go.</p>
     </section>

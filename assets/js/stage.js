@@ -6,7 +6,7 @@
    real size and scaled to fit, so mouseX/mouseY still line up and
    a 400px intro sketch becomes big enough to actually play with.
    ============================================================ */
-window.Stage = function (host) {
+window.Stage = function (host, { onShuffle } = {}) {
   const W = window.Work, esc = window.esc;
   let current = null;
 
@@ -94,10 +94,14 @@ window.Stage = function (host) {
     const p = item.project, emb = W.embedOf(p), cover = W.coverOf(p);
     const links = (p.links || []).map(l =>
       `<a href="${esc(W.url(l.url))}" target="_blank" rel="noopener">${esc(l.label)} ↗</a>`);
-    // The sketch's code as published with it (works even though the repo is private).
-    if (emb && emb.hosted && p.code) {
+    // "See it in action": the project running somewhere else (itch.io, the p5 editor…).
+    if (p.live) links.unshift(`<a href="${esc(p.live)}" target="_blank" rel="noopener">See it in action ↗</a>`);
+    // "View code": the builder works it out (the sketch's own code, published with it,
+    // or the p5 editor), unless project.yml gives another address or turns it off.
+    // Older manifests had no code link for p5 editor links, so work it out here.
+    if (p.code) {
       links.push(`<a href="${esc(W.url(p.code))}" target="_blank" rel="noopener">View code ↗</a>`);
-    } else if (emb && emb.codeUrl) {
+    } else if (p.code === undefined && emb && emb.codeUrl) {
       links.push(`<a href="${esc(emb.codeUrl)}" target="_blank" rel="noopener">View code ↗</a>`);
     }
     const canFull = emb && document.fullscreenEnabled;
@@ -127,16 +131,19 @@ window.Stage = function (host) {
           <h3>${esc(p.title)}</h3>
           <span class="by">${esc([p.student || 'Student work', W.when(p)].filter(Boolean).join(' · '))}</span>
           ${p.blurb ? `<p class="stage-blurb">${esc(p.blurb)}</p>` : ''}
-          ${howTo(p.instructions) ? `<div class="stage-how"><h4>Try it</h4>${howTo(p.instructions)}</div>` : ''}
+          ${emb && howTo(p.instructions) ? `<div class="stage-how"><h4>Try it</h4>${howTo(p.instructions)}</div>` : ''}
           ${emb && emb.size ? `<p class="stage-hint">Click the sketch to give it the mouse and keyboard.</p>` : ''}
           ${links.length || canFull ? `<div class="work-links">
             ${canFull ? '<button type="button" class="stage-full">Full screen</button>' : ''}
             ${links.join('')}</div>` : ''}
+          ${onShuffle ? '<p class="stage-more"><button type="button" class="btn btn-ghost stage-shuffle">Show another ↻</button></p>' : ''}
         </div>
       </div>`;
 
     const play = host.querySelector('.stage-play');
     if (play) play.addEventListener('click', () => start(true));
+    const shuffle = host.querySelector('.stage-shuffle');
+    if (shuffle) shuffle.addEventListener('click', onShuffle);
     const full = host.querySelector('.stage-full');
     if (full) full.addEventListener('click', () => {
       if (!host.querySelector('.stage-frame.is-live')) start(false);

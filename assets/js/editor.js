@@ -19,6 +19,7 @@
 
   /* ---------- render ---------- */
   function render() {
+    $('#showQuotes').checked = (data.meta || {}).showQuotes !== false;
     const host = $('#courses');
     const open = new Set([...host.querySelectorAll('details[open]')].map(d => d.dataset.slug));
     host.innerHTML = '';
@@ -82,7 +83,9 @@
           </div>
           <div class="f"><div class="checks"><label>
             <input type="checkbox" data-k="quotePlaceholder" ${(c.quote||{}).placeholder ? 'checked' : ''}>
-            This is placeholder text, not a real student quote</label></div></div>
+            This is placeholder text, not a real student quote</label>
+            <label><input type="checkbox" data-k="quoteShow" ${(c.quote||{}).show !== false ? 'checked' : ''}>
+            Show this quote on the site</label></div></div>
 
           <div class="f"><label>Tags</label><input type="text" data-k="skills" value="${esc((c.skills || []).join(', '))}">
             <div class="hint">Comma separated. Existing: ${Object.keys(data.skills).slice(0, 10).map(esc).join(', ')}…</div></div>
@@ -147,9 +150,10 @@
           c.quote = { text: txt,
                       by: d.querySelector('[data-k="quoteBy"]').value.trim(),
                       placeholder: d.querySelector('[data-k="quotePlaceholder"]').checked };
+          if (!d.querySelector('[data-k="quoteShow"]').checked) c.quote.show = false;
         } else { delete c.quote; }
       }
-      ['quoteText','quoteBy','quotePlaceholder'].forEach(k => delete c[k]);
+      ['quoteText','quoteBy','quotePlaceholder','quoteShow'].forEach(k => delete c[k]);
 
       const rules = [];
       d.querySelectorAll('[data-prq] .prq').forEach(box => {
@@ -177,7 +181,9 @@
       if (!c.name) out.push('A course has no name');
       if (!c.tagline) out.push(`${c.name || c.slug}: no tagline (the map card will look empty)`);
       if (!(c.highlights || []).length) out.push(`${c.name || c.slug}: no highlights`);
-      if (c.quote && c.quote.placeholder) out.push(`${c.name || c.slug}: quote is still placeholder text`);
+      if (c.quote && c.quote.placeholder && c.quote.show !== false && (data.meta || {}).showQuotes !== false) {
+        out.push(`${c.name || c.slug}: quote is still placeholder text`);
+      }
       (c.prereqs || []).forEach(p => {
         ['anyOf', 'allOf'].forEach(k => (p[k] || []).forEach(ref => {
           if (!slugs.includes(ref)) out.push(`${c.name}: prerequisite points at missing course "${ref}"`);
@@ -237,6 +243,13 @@
     });
     render();
     document.querySelector('#courses details:last-child').open = true;
+  });
+
+  // Site-wide: hide every course's quote (meta.showQuotes: false), or show them again.
+  $('#showQuotes').addEventListener('change', e => {
+    data.meta = data.meta || {};
+    if (e.target.checked) delete data.meta.showQuotes; else data.meta.showQuotes = false;
+    preview();
   });
 
   $('#expandAll').addEventListener('click', () => document.querySelectorAll('#courses details').forEach(d => d.open = true));

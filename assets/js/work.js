@@ -124,6 +124,8 @@ window.Work = (function () {
                     repo, the p5 editor and OpenProcessing; off for everything else,
                     since a Unity build can be 100 MB. */
   function embedOf(project) {
+    // play: false in project.yml: shown as its cover (no Play button, no "Try it").
+    if (project.play === false) return null;
     const m = (project.media || []).find(x => x && x.type === 'embed' && x.src);
     if (!m) return null;
     let src = String(m.src).trim(), hosted = false;

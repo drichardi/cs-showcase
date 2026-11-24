@@ -1,5 +1,5 @@
-/* Home page. Student work is the page itself; Courses and Plan a route are tabs
-   in the nav that swap it out. One view is shown at a time. */
+/* Home page. Student work is the page itself; the course map and the planner
+   (under "Course planning" in the nav) swap it out. One view is shown at a time. */
 (function () {
   /* ---------- views ----------
      The URL hash picks the view, so links from course pages (index.html#map),
@@ -25,19 +25,22 @@
       if (a.dataset.tab === view) a.setAttribute('aria-current', 'page');
       else a.removeAttribute('aria-current');
     });
+    // A menu button is lit while one of its views is showing (Course planning: map, plan).
+    document.querySelectorAll('[data-tab-group]').forEach(b =>
+      b.toggleAttribute('data-current', b.dataset.tabGroup.split(' ').includes(view)));
     window.scrollTo({ top: 0, behavior: 'instant' });
     if (enter[view]) enter[view]();
   }
   addEventListener('hashchange', () => showView(viewFor(location.hash)));
   showView(viewFor(location.hash));
 
-  // The site name goes home. On this page that's a view switch, not a reload.
-  document.querySelector('.brand').addEventListener('click', e => {
+  // The site name and Home go home. On this page that's a view switch, not a reload.
+  document.querySelectorAll('.brand, [data-tab="work"]').forEach(a => a.addEventListener('click', e => {
     e.preventDefault();
     if (current === 'work') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     history.pushState(null, '', location.pathname + location.search);
     showView('work');
-  });
+  }));
 
   (async function () {
     let data;
@@ -78,7 +81,8 @@
        One project large, chosen at random (a playable one if there is one), then
        rows of projects by course. On a big enough screen the featured project fits
        the window, with the start of the rows just showing below (see .theater). */
-    const stage = window.Stage(document.getElementById('stage'));
+    // "Show another" on the featured project picks a different one at random.
+    const stage = window.Stage(document.getElementById('stage'), { onShuffle: () => feature(true) });
     const theater = document.querySelector('.theater');
     function sizeTheater() {
       if (current !== 'work') return;
@@ -124,10 +128,11 @@
       }).join('');
     }
 
+    let gallery = null;
     function renderRows() {
       const rows = buildRows();
       document.getElementById('rowsHead').hidden = !rows.length;
-      window.Stage.gallery(document.getElementById('rows'), rows.flatMap(r => r.items), stage, null, () => rowsHtml(rows));
+      gallery = window.Stage.gallery(document.getElementById('rows'), rows.flatMap(r => r.items), stage, null, () => rowsHtml(rows));
     }
 
     function renderHome() {
@@ -138,12 +143,21 @@
           : 'No student work has been published yet.'}</div>`;
         return;
       }
-      const playable = all.filter(it => window.Work.embedOf(it.project));
-      const pool = playable.length ? playable : all;
-      stage.show(pool[Math.floor(Math.random() * pool.length)]);
+      feature(false);
       renderRows();
     }
-    document.getElementById('btnReshuffle').addEventListener('click', renderRows);
+
+    /* The featured project: a random one, playable if any are. Another press
+       never picks the one already showing (when there's a choice). */
+    function feature(again) {
+      const all = shown.flatMap(g => g.items);
+      const playable = all.filter(it => window.Work.embedOf(it.project));
+      let pool = playable.length ? playable : all;
+      const now = stage.current;
+      if (again && now && pool.length > 1) pool = pool.filter(it => !(it.slug === now.slug && it.project.id === now.project.id));
+      stage.show(pool[Math.floor(Math.random() * pool.length)]);
+      if (gallery) gallery.mark();
+    }
 
     // Built the first time the page shows. Switching to another view stops a
     // running sketch or game, so its sound doesn't carry on behind it.

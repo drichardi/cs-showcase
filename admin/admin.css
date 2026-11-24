@@ -221,3 +221,16 @@ div.add-err{padding:10px 14px;border-left:3px solid var(--l4);background:var(--b
   .guide > .admin-card{border:0;box-shadow:none;padding:0;max-width:none}
   .guide section{break-inside:avoid-page}
 }
+
+/* ---------- new assignment; an assignment with no work yet ---------- */
+.proj-assign select{font:inherit;font-weight:400;font-size:.9rem;padding:7px 9px;border:1px solid var(--rule-2);border-radius:3px;background:var(--paper);color:var(--ink)}
+.proj-empty-go{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 0}
+.proj-empty-go .btn{margin:0}
+
+/* ---------- "On the site": playable here, code link, see it in action ---------- */
+.add-onsite{margin-top:6px;padding:14px 16px 4px;border:1px solid var(--rule);border-radius:var(--radius);background:var(--paper)}
+.add-onsite .add-label{margin-top:0}
+.add-code{display:flex;gap:8px;flex-wrap:wrap}
+.add-code select{flex:0 1 auto!important;width:auto!important}
+.add-code input{flex:1 1 220px}
+.add-dim{opacity:.55}

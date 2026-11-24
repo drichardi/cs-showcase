@@ -49,9 +49,14 @@ A course entry:
   "prereqText": "Intro to Programming or AP CSP, and Algebra II",
   "prereqs": [{ "anyOf": ["intro-programming", "ap-csp"] }],
   "note": "…",                     // optional callout
-  "skills": ["python", "data"]     // keys from the "skills" dictionary
+  "skills": ["python", "data"],    // keys from the "skills" dictionary
+  "quote": { "text": "…", "by": "Student ’26", "placeholder": true, "show": false }
 }
 ```
+
+Student quotes can be switched off: one course's with `"show": false` in its `quote`, or
+every course's with `"showQuotes": false` in `meta`. The course editor (`editor.html`)
+has a checkbox for each.
 
 Three prerequisite forms are supported:
 
@@ -103,8 +108,10 @@ The home page **is** the student work page. One project is shown large, chosen a
 random (a playable one when there is one). On screens at least 1000×560 it fits the
 window, with its caption to the right and the start of the rows peeking in below.
 
-Under it are rows of projects by course, picked at random on each visit (Shuffle picks
-again). `ROW_SIZE` and `ROW_MIN` in `assets/js/config.js` set the rules:
+Its caption has **Show another**, which picks a different project at random. There is
+no heading: the work speaks for itself.
+
+Under it are rows of projects by course, picked at random on each visit. `ROW_SIZE` and `ROW_MIN` in `assets/js/config.js` set the rules:
 
 - a course with at least `ROW_MIN` (4) projects gets its own row of up to `ROW_SIZE` (5)
 - courses with fewer share rows, packed in course order and never split across two
@@ -113,9 +120,17 @@ again). `ROW_SIZE` and `ROW_MIN` in `assets/js/config.js` set the rules:
 
 Clicking any card plays it in the large view. On phones each row is a strip you swipe.
 
-**Courses** (the intro and the map) and **Plan a route** (the planner and FAQ) are
-links in the nav that swap the home page out; the site name brings it back. The URL
-hash picks the view (`#map`, `#plan`; none for the home page), so links from course
+The nav: **Home**; **Courses**, a menu of every course page (from `data/courses.json`);
+and **Course planning**, a menu with "View course map" (the intro and the map) and
+"Create your plan" (the planner and FAQ), which swap the home page out. Home and the
+site name bring it back. Teachers who've signed in to the dashboard in that browser also
+get a **Public site | Dashboard** switch.
+
+The three designs (skins A, B, C) all stay in the CSS, but the picker is hidden and
+everyone sees Survey (B). `?skin=a` (or `c`) in a URL previews another; to bring the
+picker back for feedback, set `SHOW_DESIGN_PICKER` in `assets/js/shared.js` to `true`.
+
+The URL hash picks the view (`#map`, `#plan`; none for the home page), so links from course
 pages, shared routes (`#route=…`), tag filters (`#tag=…`) and the back button all land
 on the right one. Switching away stops a running sketch or game.
 
@@ -139,7 +154,9 @@ the teacher list; then:
 - **Add project:** pick the course, assignment (or start a new one) and term; drop in the
   p5 editor's zip or a sketch folder, paste a p5 editor / Scratch / CodePen / itch.io link,
   or add pictures; see it running in a preview; fill in title, students, description and
-  "Try it" steps; choose a cover; tick "Show it on the site" (which needs the consent box).
+  "Try it" steps; under "On the site", choose whether visitors can play it here, where
+  "View code" goes (automatic, another address, or none) and an optional "See it in
+  action" link; choose a cover; tick "Show it on the site" (which needs the consent box).
   Publishing saves it to the repo as one change under the teacher's name and shows when
   it's live, about a minute later.
 - **Add several:** a class set at once. Pick the course, assignment and term, then drop in
@@ -151,8 +168,9 @@ the teacher list; then:
   one with a mistake) and Show on site / Hide. Editing changes the details, the cover, or
   the files (upload a new version of the sketch); anything else in `project.yml` is kept.
   If a colleague changed the same project in the meantime, the save stops and says so.
-- **Assignments:** filter to one assignment to see and edit its name, description and
-  order.
+- **Assignments:** "New assignment" sets one up before any work is added (it shows on
+  the site once it has shown work). Filter to one assignment to see and edit its name,
+  description and order.
 
 A sign-in lasts 8 hours. If it runs out with the dashboard open, a "Sign in again" box
 covers the page instead of signing out, so a half-filled form isn't lost. Leaving a page

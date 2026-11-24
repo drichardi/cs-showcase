@@ -62,3 +62,26 @@ test('new files clear an old media list; a link rewrites it with the embed', () 
 test('a broken project.yml is reported instead of guessed at', () => {
   assert.throws(() => updatedYaml('title: [oops\n', meta(), { kind: 'sketch', pictures: [] }));
 });
+
+test('play, code and live: written only when set, and removed again', () => {
+  let out = updatedYaml(original, meta({ play: false, code: 'https://github.com/x/y', live: 'https://x.itch.io/game' }), { kind: 'sketch', pictures: [], replaced: false });
+  let y = parse(out);
+  assert.equal(y.play, false);
+  assert.equal(y.code, 'https://github.com/x/y');
+  assert.equal(y.live, 'https://x.itch.io/game');
+  out = updatedYaml(out, meta({ code: 'none' }), { kind: 'sketch', pictures: [], replaced: false });
+  y = parse(out);
+  assert.equal(y.code, false, 'no code link');
+  assert.ok(!('play' in y), 'playable is the default, so not written');
+  assert.ok(!('live' in y));
+  out = updatedYaml(out, meta({}), { kind: 'sketch', pictures: [], replaced: false });
+  assert.ok(!('code' in parse(out)), 'automatic again');
+});
+
+test('play, code and live are checked', () => {
+  assert.equal(meta({}).play, true);
+  assert.equal(meta({ play: false }).play, false);
+  assert.equal(meta({ code: false }).code, 'none');
+  assert.throws(() => meta({ code: 'javascript:alert(1)' }), e => e.extra.field === 'code');
+  assert.throws(() => meta({ live: 'itch.io/game' }), e => e.extra.field === 'live');
+});
