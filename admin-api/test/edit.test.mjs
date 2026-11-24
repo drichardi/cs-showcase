@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parse } from 'yaml';
-import { splitNames, updatedYaml } from '../src/edit.js';
+import { splitNames, updatedYaml, assignmentText } from '../src/edit.js';
 import { validateMeta } from '../src/write.js';
 
 const meta = (over = {}) => validateMeta({
@@ -84,4 +84,18 @@ test('play, code and live are checked', () => {
   assert.equal(meta({ code: false }).code, 'none');
   assert.throws(() => meta({ code: 'javascript:alert(1)' }), e => e.extra.field === 'code');
   assert.throws(() => meta({ live: 'itch.io/game' }), e => e.extra.field === 'live');
+});
+
+test('assignment.yml: show is switched without losing anything else', () => {
+  const raw = '# Tiling, spring and fall.\ntitle: Tiling\nblurb: Repeat a tile. # short\norder: 2\ncolor: teal\n';
+  const off = assignmentText(raw, { title: 'Tiling', blurb: 'Repeat a tile.', order: 2, show: false });
+  assert.equal(parse(off).show, false);
+  assert.match(off, /# Tiling, spring and fall\./);
+  assert.equal(parse(off).color, 'teal');
+  const on = assignmentText(off, { title: 'Tiling', blurb: 'Repeat a tile.', order: 2, show: true });
+  assert.ok(!('show' in parse(on)), 'on is the default, so not written');
+  const kept = assignmentText(off, { title: 'Tiling Patterns', blurb: '', order: null });
+  assert.equal(parse(kept).show, false, 'an ordinary edit leaves the switch alone');
+  assert.equal(parse(kept).title, 'Tiling Patterns');
+  assert.deepEqual(parse(assignmentText(null, { title: 'New', blurb: '', order: null, show: false })), { title: 'New', show: false });
 });

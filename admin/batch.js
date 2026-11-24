@@ -99,6 +99,8 @@ window.AdminBatch = (function () {
       <section class="add-sec">
         <h3><span>4</span> Publish</h3>
         <p class="hint" id="showSummary"></p>
+        <p class="add-err" id="assignOff" hidden>This assignment is switched off, so nothing in it is on the site. Tick its
+          "On the site" box in the Projects list to bring it back.</p>
         <label class="add-check" id="consentRow" hidden>
           <input type="checkbox" id="consent"${b.consent ? ' checked' : ''}> <span id="consentText"></span></label>
         <div class="add-go">
@@ -403,6 +405,7 @@ window.AdminBatch = (function () {
     });
     const missing = problems();
     $('missing').innerHTML = missing.map(m => `<li>${esc(m)}</li>`).join('');
+    $('assignOff').hidden = (assignmentsFor(b.course).find(a => a.id === assignmentId()) || {}).show !== false;
     const busy = b.save && ['preparing', 'uploading', 'saving'].includes(b.save.state);
     const done = b.save && b.save.res;
     $('publish').textContent = n ? `Publish ${n} project${n === 1 ? '' : 's'}` : 'Publish';

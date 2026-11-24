@@ -155,6 +155,8 @@ window.AdminAdd = (function () {
         <label class="add-check add-consent" id="consentRow"${d.show ? '' : ' hidden'}>
           <input type="checkbox" id="consent"${d.consent ? ' checked' : ''}> The student(s) agreed to have this shown publicly</label>
         <p class="hint">Left unticked, it's saved to the repo but stays off the site.</p>
+        <p class="add-err" id="assignOff" hidden>Its assignment is switched off, so nothing in it is on the site. Tick the
+          assignment's "On the site" box in the Projects list to bring it back.</p>
         ${e ? '' : `<details class="add-adv"><summary>Advanced</summary>
           <label>Folder name <input id="folder" value="${esc(d.folder)}" pattern="[a-z0-9-]+"></label>
           <p class="hint" id="folderPath"></p>
@@ -587,6 +589,7 @@ window.AdminAdd = (function () {
     renderCard();
     const missing = problems();
     $('missing').innerHTML = missing.map(m => `<li>${esc(m)}</li>`).join('');
+    $('assignOff').hidden = (assignmentsFor(d.course).find(a => a.id === assignmentId()) || {}).show !== false;
     $('publish').disabled = !!missing.length || (d.save && d.save.state === 'saving');
   }
 

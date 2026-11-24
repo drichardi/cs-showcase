@@ -234,3 +234,26 @@ div.add-err{padding:10px 14px;border-left:3px solid var(--l4);background:var(--b
 .add-code select{flex:0 1 auto!important;width:auto!important}
 .add-code input{flex:1 1 220px}
 .add-dim{opacity:.55}
+
+/* ---------- assignments: tiles with an "On the site" switch ---------- */
+.admin .assign-sec{margin:0 0 18px;padding:0}
+.admin .assign-head{margin:0 0 8px;padding:0;border:0;font-size:.86rem;color:var(--ink)}
+.assign-head .opt{color:var(--ink-3);font-size:.8rem;margin-left:6px}
+.assign-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.assign-tile{display:flex;flex-direction:column;gap:4px;padding:11px 13px;background:var(--popover,var(--surface));
+  border:1px solid var(--rule);border-left:3px solid var(--l5);border-radius:var(--radius)}
+.assign-tile.is-off{border-left-color:var(--ink-3);background:var(--paper)}
+.assign-tile.is-off .assign-open{color:var(--ink-2)}
+.assign-open{font:inherit;font-family:var(--display);font-weight:600;font-size:1rem;text-align:left;color:var(--ink);
+  background:none;border:0;padding:0;cursor:pointer;line-height:1.25}
+.assign-open:hover{color:var(--accent);text-decoration:underline}
+.assign-meta{font-size:.74rem;color:var(--ink-3)}
+.assign-show{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:7px;font-size:.84rem;font-weight:500;
+  color:var(--ink);margin-top:4px;cursor:pointer;width:max-content}
+.assign-show input{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
+.assign-msg{font-size:.74rem;color:var(--ink-2)}
+.assign-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.proj-assign.is-off{border-left-color:var(--ink-3)}
+@media (max-width:640px){.assign-side{align-items:flex-start}}
+.proj-assign .assign-show{flex:0 0 auto}
+.proj-actions .proj-show{margin-top:0}

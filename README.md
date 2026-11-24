@@ -165,12 +165,15 @@ the teacher list; then:
   students guessed from the file names, a preview, and a Show box; one consent box covers
   the ones marked Show. Files the repo already has, like p5.js, aren't uploaded again.
 - **Edit:** every card has Edit (Set up for a sketch folder with no `project.yml`, Fix for
-  one with a mistake) and Show on site / Hide. Editing changes the details, the cover, or
+  one with a mistake) and an "On the site" box (ticking it asks to confirm the students
+  agreed; unticking just saves). Editing changes the details, the cover, or
   the files (upload a new version of the sketch); anything else in `project.yml` is kept.
   If a colleague changed the same project in the meantime, the save stops and says so.
-- **Assignments:** "New assignment" sets one up before any work is added (it shows on
-  the site once it has shown work). Filter to one assignment to see and edit its name,
-  description and order.
+- **Assignments:** a tile for each, with an "On the site" box that switches the whole
+  assignment off or on (`show: false` in its `assignment.yml`; each project keeps its own
+  `show`, so switching it back on returns exactly the projects that were shown).
+  "New assignment" sets one up before any work is added (it shows on the site once it
+  has shown work). Open one to see and edit its name, description and order.
 
 A sign-in lasts 8 hours. If it runs out with the dashboard open, a "Sign in again" box
 covers the page instead of signing out, so a half-filled form isn't lost. Leaving a page

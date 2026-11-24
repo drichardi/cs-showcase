@@ -106,7 +106,7 @@ test('a project.yml with a mistake is reported, not fatal', () => {
 test('assignments get their title from assignment.yml or the folder', () => {
   const intro = assignments['intro-programming'];
   const tiling = intro.find(a => a.id === 'tiling');
-  assert.deepEqual({ ...tiling, ymlSha: undefined }, { id: 'tiling', title: 'Tiling Patterns', blurb: 'Repeat a tile.', order: 2, ymlSha: undefined, count: 2 });
+  assert.deepEqual({ ...tiling, ymlSha: undefined }, { id: 'tiling', title: 'Tiling Patterns', blurb: 'Repeat a tile.', order: 2, ymlSha: undefined, show: true, count: 2, shown: 1 });
   assert.ok(tiling.ymlSha, 'the assignment.yml version, for safe editing');
   assert.equal(intro.find(a => a.id === 'a').title, 'A');
 });
@@ -123,4 +123,26 @@ test('an assignment with no work yet is still listed, with a count of 0', () => 
   assert.equal(net.count, 0);
   assert.ok(net.ymlSha);
   assert.ok(!projects.some(p => p.path.startsWith('ap-csp/networks')), 'and it is not a project');
+});
+
+test('an assignment switched off is listed as hidden, and so are its projects', () => {
+  const tiling = assignments['intro-programming'].find(a => a.id === 'tiling');
+  assert.equal(tiling.show, true);
+  assert.equal(tiling.shown, 1, 'David L. is shown');
+  assert.equal(byPath['intro-programming/tiling/david-l-tiling-s25'].assignmentHidden, false);
+
+  const t2 = [], x2 = new Map();
+  const put = (path, content = '') => { const sha = `s${t2.length}`; t2.push({ path, type: 'blob', sha }); x2.set(sha, content); };
+  put('intro-programming/sunrise/assignment.yml', 'title: Sunrise\nshow: false\n');
+  put('intro-programming/sunrise/lam-s25/project.yml', 'title: Sunrise\nstudent: Lam N.\nshow: true\n');
+  put('intro-programming/sunrise/lam-s25/index.html');
+  put('intro-programming/loose/kai-s25/project.yml', 'title: Loose\nstudent: Kai L.\nshow: true\n');
+  for (const d of ['intro-programming', 'intro-programming/sunrise', 'intro-programming/sunrise/lam-s25', 'intro-programming/loose', 'intro-programming/loose/kai-s25']) t2.push({ path: d, type: 'tree', sha: 't' + d });
+  const r = assemble(discover(t2), x2);
+  const sunrise = r.assignments['intro-programming'].find(a => a.id === 'sunrise');
+  assert.equal(sunrise.show, false);
+  const lam = r.projects.find(p => p.path === 'intro-programming/sunrise/lam-s25');
+  assert.equal(lam.status, 'shown', "the project's own show is untouched");
+  assert.equal(lam.assignmentHidden, true);
+  assert.equal(r.projects.find(p => p.path === 'intro-programming/loose/kai-s25').assignmentHidden, false);
 });

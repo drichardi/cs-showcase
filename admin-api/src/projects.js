@@ -124,13 +124,25 @@ export function assemble(found, texts) {
       let info = {};
       const sha = found.assignmentYml.get(`${course}/${id}`);
       try { info = (sha && parse(texts.get(sha) ?? '')) || {}; } catch (e) { info = {}; }
-      a = { id, title: text(info.title) || titleFrom(id), blurb: text(info.blurb), order: info.order ?? null, ymlSha: sha || null, count: 0 };
+      if (typeof info !== 'object' || Array.isArray(info)) info = {};
+      // show: false switches the whole assignment off the site (its projects keep their own show).
+      a = { id, title: text(info.title) || titleFrom(id), blurb: text(info.blurb), order: info.order ?? null, ymlSha: sha || null,
+        show: info.show !== false, count: 0, shown: 0 };
       list.push(a);
     }
     return a;
   };
-  for (const p of out) if (p.assignment) named(p.course, p.assignment).count++;
+  for (const p of out) {
+    if (!p.assignment) continue;
+    const a = named(p.course, p.assignment);
+    a.count++;
+    if (p.status === 'shown') a.shown++;
+  }
   for (const f of found.folders || []) named(f.course, f.id);
+  // A project marked shown is still off the site while its assignment is switched off.
+  for (const p of out) {
+    p.assignmentHidden = !!p.assignment && (assignments[p.course] || []).some(a => a.id === p.assignment && !a.show);
+  }
   return { projects: out, assignments };
 }
 

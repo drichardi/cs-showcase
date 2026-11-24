@@ -222,31 +222,49 @@ export async function saveAssignment(request, env, user) {
   if (body.ymlSha !== undefined && (body.ymlSha ?? null) !== (current ? current.sha : null)) {
     throw new HttpError(409, 'conflict', 'Someone else changed this assignment since you opened it. Refresh the list, then edit again.');
   }
-  let text;
-  if (current) {
-    const raw = await (await gh(env, `/contents/${course}/${id}/assignment.yml?ref=${head}`,
-      { ...write, accept: 'application/vnd.github.raw', raw: true })).text();
-    const doc = parseDocument(raw);
-    if (doc.errors.length) text = null;
-    else {
-      doc.set('title', title);
-      blurb ? doc.set('blurb', blurb) : doc.delete('blurb');
-      order !== null ? doc.set('order', order) : doc.delete('order');
-      text = doc.toString({ lineWidth: 0 });
-    }
-  }
-  if (!text) {
-    const doc = { title };
-    if (blurb) doc.blurb = blurb;
-    if (order !== null) doc.order = order;
-    text = '# Edited with the CS teacher dashboard.\n' + stringify(doc, { lineWidth: 0 });
-  }
+  // show: switch the whole assignment on or off the site (left as it is if not sent).
+  const show = typeof body.show === 'boolean' ? body.show : undefined;
+  const raw = current ? await (await gh(env, `/contents/${course}/${id}/assignment.yml?ref=${head}`,
+    { ...write, accept: 'application/vnd.github.raw', raw: true })).text() : null;
+  const text = assignmentText(raw, { title, blurb, order, show });
+  const what = show === false ? 'Hide assignment on the site' : show === true ? 'Show assignment on the site' : 'Update assignment';
   const commit = await saveCommit(env, {
     parent: head, user,
     entries: [{ path: `${course}/${id}/assignment.yml`, mode: '100644', type: 'blob', content: text }],
-    message: `Update assignment: ${title} (${course})\n\nEdited with the CS teacher dashboard by ${user.name} <${user.email}>.`
+    message: `${what}: ${title} (${course})\n\nEdited with the CS teacher dashboard by ${user.name} <${user.email}>.`
   });
-  return { course, id, commit: commit.sha, branch: env.GITHUB_BRANCH, published: env.GITHUB_BRANCH === 'main' };
+  // Its new version, so the dashboard can save again without reloading the list.
+  return { course, id, commit: commit.sha, branch: env.GITHUB_BRANCH, published: env.GITHUB_BRANCH === 'main',
+    ymlSha: await gitBlobSha(text), show: show ?? null };
+}
+
+/* assignment.yml with the title, description and order set, and `show: false` added or
+   removed when show is given; everything else (comments included) is kept. A missing or
+   broken file is written fresh. */
+export function assignmentText(raw, { title, blurb, order, show }) {
+  const doc = raw == null ? null : parseDocument(raw);
+  if (doc && !doc.errors.length && doc.contents && typeof doc.toJSON() === 'object' && !Array.isArray(doc.toJSON())) {
+    doc.set('title', title);
+    blurb ? doc.set('blurb', blurb) : doc.delete('blurb');
+    order !== null ? doc.set('order', order) : doc.delete('order');
+    if (show === false) doc.set('show', false);
+    else if (show === true) doc.delete('show');
+    return doc.toString({ lineWidth: 0 });
+  }
+  const fresh = { title };
+  if (blurb) fresh.blurb = blurb;
+  if (order !== null) fresh.order = order;
+  if (show === false) fresh.show = false;
+  return '# Edited with the CS teacher dashboard.\n' + stringify(fresh, { lineWidth: 0 });
+}
+
+/* Git's id for a file: SHA-1 of "blob <size>\0" and its bytes. */
+async function gitBlobSha(text) {
+  const bytes = new TextEncoder().encode(text);
+  const head = new TextEncoder().encode(`blob ${bytes.length}\0`);
+  const all = new Uint8Array(head.length + bytes.length);
+  all.set(head); all.set(bytes, head.length);
+  return [...new Uint8Array(await crypto.subtle.digest('SHA-1', all))].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 /* A new assignment on its own, before any work is added: just its assignment.yml
